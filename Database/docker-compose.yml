@@ -2,16 +2,19 @@ services:
   mysql:
     image: mysql:8.0
     container_name: hku-planner-db
-
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}   # 真实部署时用 .env 覆盖，不要提交 .env
       MYSQL_DATABASE: hkuplanner
-
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     ports:
       - "3306:3306"
-
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro   # 首次启动自动建表
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD:-rootpassword}"]
+      interval: 5s
+      retries: 20
 
 volumes:
   mysql_data:

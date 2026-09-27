@@ -1,0 +1,1 @@
+{"name":"hkuplan-scheduler","type":"module","scripts":{"test":"node test.js"}}

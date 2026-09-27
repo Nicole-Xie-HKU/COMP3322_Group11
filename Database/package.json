@@ -1,16 +1,17 @@
 {
-  "dependencies": {
-    "mysql2": "^3.24.4"
-  },
-  "name": "database",
+  "name": "hkuplan-database",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "import": "node importTimetable.js",
+    "test": "node test-integration.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs"
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "mysql2": "^3.24.4"
+  }
 }
