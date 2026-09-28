@@ -2,31 +2,27 @@ const mysql = require("mysql2/promise");
 const courses = require("./HKU_timetable_2026-2027.json");
 
 async function importData() {
-
     const db = await mysql.createConnection({
         host: "localhost",
         user: "root",
         password: "rootpassword",
-        database: "hkuplanner"
+        database: "hkuplanner",
     });
 
     console.log("Connected to MySQL");
 
     for (const course of courses) {
-
         try {
-
             /*
              * Insert course
              */
             await db.execute(
                 `
-                INSERT IGNORE INTO courses
-                (
+                INSERT IGNORE INTO courses (
                     course_code,
                     course_title,
-                    department,
-                    academic_career
+                    offer_dept,
+                    acad_career
                 )
                 VALUES (?, ?, ?, ?)
                 `,
@@ -34,7 +30,7 @@ async function importData() {
                     course["COURSE CODE"],
                     course.COURSE_TITLE,
                     course.OFFER_DEPT,
-                    course.ACAD_CAREER
+                    course.ACAD_CAREER,
                 ]
             );
 
@@ -42,64 +38,60 @@ async function importData() {
              * Insert section
              */
             await db.execute(
-                `
-                INSERT IGNORE INTO sections
-                (
-                    class_number,
-                    course_code,
-                    class_section
-                )
-                VALUES (?, ?, ?)
-                `,
-                [
-                    course.CLASS_NUMBER,
-                    course["COURSE CODE"],
-                    course["CLASS SECTION"]
-                ]
+            `
+            INSERT IGNORE INTO sections (
+                class_number,
+                term,
+                course_code,
+                class_section
+            )
+            VALUES (?, ?, ?, ?)
+            `,
+            [
+                 course.CLASS_NUMBER,
+                 course.TERM,
+                 course["COURSE CODE"],
+                 course["CLASS SECTION"],
+            ]
             );
 
             /*
              * Insert instructors
              */
             if (course.INSTRUCTORS) {
-
                 for (const instructor of course.INSTRUCTORS) {
-
-                    await db.execute(
+			
+			await db.execute(
                         `
-                        INSERT INTO instructors
-                        (
+                        INSERT IGNORE INTO instructors (
                             class_number,
+                            term,
                             instructor_name
                         )
-                        VALUES (?, ?)
+                        VALUES (?, ?, ?)
                         `,
                         [
                             course.CLASS_NUMBER,
-                            instructor
+                            course.TERM,
+                            instructor,
                         ]
                     );
-
                 }
-
             }
 
             /*
              * Insert meetings
              */
             if (course.MEETINGS) {
-
                 for (const meeting of course.MEETINGS) {
-
                     await db.execute(
                         `
-                        INSERT INTO meetings
-                        (
+                        INSERT IGNORE INTO meetings (
                             class_number,
                             term,
                             start_date,
                             end_date,
-                            day_of_week,
+                            day,
                             start_time,
                             end_time,
                             venue
@@ -110,21 +102,16 @@ async function importData() {
                             course.CLASS_NUMBER,
                             course.TERM,
 
-                            meeting.START_DATE ||
                             course.START_DATE,
-
-                            meeting.END_DATE ||
                             course.END_DATE,
 
                             meeting.DAY,
                             meeting.START_TIME,
                             meeting.END_TIME,
-                            meeting.VENUE
+                            meeting.VENUE,
                         ]
                     );
-
                 }
-
             }
 
             console.log(
@@ -132,20 +119,16 @@ async function importData() {
             );
 
         } catch (err) {
-
             console.error(
-                `Error importing ${course["COURSE CODE"]}`,
+                `Error importing ${course["COURSE CODE"]} ${course["CLASS SECTION"]}:`,
                 err.message
             );
-
         }
-
     }
 
     await db.end();
 
     console.log("Import completed");
-
 }
 
 importData();
