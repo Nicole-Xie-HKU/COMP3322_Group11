@@ -1,21 +1,14 @@
 import { useEffect, useState } from "react";
-import { Check, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { generateSchedules, getCourse, request } from "./api";
 import { colorFor } from "../../scheduler/export";
 import CourseSearch from "./components/CourseSearch";
 import CourseCard from "./components/CourseCard";
 import Timetable from "./components/Timetable";
 
-const storageKey = "hkuplan.saved-schedules";
-
-function readSaved() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-    return Array.isArray(saved) ? saved : [];
-  } catch {
-    return [];
-  }
-}
+import { useSavedSchedules } from "./hooks/useSavedSchedules";
+import Credits from "./components/Credits";
+import SavedSchedules from "./components/SavedSchedules";
 
 export default function App() {
   const [terms, setTerms] = useState([]);
@@ -28,14 +21,15 @@ export default function App() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [view, setView] = useState("builder");
-  const [saved, setSaved] = useState(readSaved);
+  const saves = useSavedSchedules(setError);
+  const { saved } = saves;
   const schedule = result?.schedules[index];
   const termInfo = terms.find((item) => item.id === term);
   const courseCodes = courses.map((course) => course.code).sort();
   const alreadySaved =
     schedule &&
     saved.some(
-      (item) => item.term === term && item.schedule.id === schedule.id,
+      (item) => !item.legacy && item.term === term && (item.schedule?.id === schedule.id || item.sectionKeys?.slice().sort().join("|") === schedule.sections.map(s => `${s.courseCode}:${s.id}`).sort().join("|")),
     );
 
   useEffect(() => {
@@ -120,42 +114,27 @@ export default function App() {
     generate(next);
   }
 
-  function updateSaved(next) {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify(next));
-      setSaved(next);
-      return true;
-    } catch {
-      setError("Could not save schedule.");
-      return false;
-    }
+  async function saveSchedule() {
+    await savedAction(async () => { await saves.save(term,schedule); setNotice("Saved to MySQL for this browser."); });
   }
-
-  function saveSchedule() {
-    if (
-      updateSaved([
-        ...saved,
-        { id: Date.now(), term, courses, locked, schedule },
-      ])
-    ) {
-      setNotice("Saved.");
-    }
+  async function savedAction(action) {
+    setBusy(true); setError("");
+    try { await action(); } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
-
-  function openSaved(item) {
-    setTerm(item.term);
-    setCourses(item.courses);
-    setLocked(item.locked);
-    setResult({
-      schedules: [item.schedule],
-      warnings: [],
-      skipped: [],
-      total: 1,
+  async function openSaved(item) {
+    await savedAction(async () => {
+      const value=await saves.open(item);
+      setTerm(value.term);setCourses(value.courses);setLocked(value.locked);
+      setResult({schedules:[value.schedule],warnings:value.warnings||[],skipped:[],total:1,searchComplete:true});
+      setIndex(0);setNotice(value.legacy?"Older local save (not stored on server).":"Saved schedule.");setView("builder");
     });
-    setIndex(0);
-    setError("");
-    setNotice("Saved schedule.");
-    setView("builder");
+  }
+  async function loadMore() {
+    setBusy(true);setError("");
+    try {
+      const page=await generateSchedules(term,courses,locked,result.nextCursor);
+      setResult(current=>({...page,schedules:[...current.schedules,...page.schedules]}));
+    } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
   return (
@@ -189,6 +168,7 @@ export default function App() {
           >
             SAVED SCHEDULES ({saved.length})
           </button>
+          <button className={view === "credits" ? "active" : ""} onClick={()=>setView("credits")}>CREDITS</button>
         </div>
       </nav>
 
@@ -281,7 +261,7 @@ export default function App() {
                 <div className="schedule-actions">
                   <button
                     className="text-button"
-                    disabled={!schedule || alreadySaved}
+                    disabled={!schedule || alreadySaved || busy || !saves.ready}
                     onClick={saveSchedule}
                   >
                     {alreadySaved ? "Saved" : "Save"}
@@ -327,15 +307,14 @@ export default function App() {
               </div>
               {result && !result.schedules.length && (
                 <div className="message warning" role="status">
-                  No matching schedule. Change a section or remove a course.
+                  {result.searchComplete === false ? "Search is incomplete. Load more results to continue." : "No matching schedule. Change a section or remove a course."}
                 </div>
               )}
-              {result?.truncated && (
-                <p className="schedule-note">
-                  First {result.schedules.length} results. Pin sections to narrow
-                  results.
-                </p>
-              )}
+              {result?.nextCursor && <p className="schedule-note">
+                {result.schedules.length} results loaded; search is not complete.
+                <button className="text-button" disabled={busy} onClick={loadMore}>Load more results</button>
+              </p>}
+              {result?.warnings?.map((warning,i)=><p className="schedule-note" key={i}>{warning}</p>)}
               {result?.skipped?.length > 0 && (
                 <p className="message warning">
                   Not scheduled this term:{" "}
@@ -343,7 +322,7 @@ export default function App() {
                 </p>
               )}
               {schedule?.sections.some(
-                (section) => section.tba || !section.meetings.length,
+                (section) => (Array.isArray(section.tba) ? section.tba.length > 0 : section.tba) || !section.meetings.length,
               ) && (
                 <p className="message warning">
                   TBA times excluded from conflict checks.
@@ -364,54 +343,11 @@ export default function App() {
               </div>
             </section>
           </div>
-        ) : (
-          <section className="saved-panel" aria-label="Saved schedules">
-            <div className="panel-title">
-              <h2>Saved schedules</h2>
-            </div>
-            {!saved.length ? (
-              <p className="saved-empty">No saved schedules.</p>
-            ) : (
-              saved.map((item) => (
-                <article key={item.id} className="saved-card">
-                  <div>
-                    <span className="saved-term">{item.term}</span>
-                    <h3>
-                      {item.schedule.sections
-                        .map((section) => section.courseCode)
-                        .join(" · ")}
-                    </h3>
-                    <p>
-                      {item.schedule.sections
-                        .map(
-                          (section) => `${section.courseCode} — ${section.id}`,
-                        )
-                        .join(" / ")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      className="secondary-button"
-                      onClick={() => openSaved(item)}
-                    >
-                      View schedule
-                    </button>
-                    <button
-                      className="icon-button"
-                      aria-label={`Delete saved schedule ${item.schedule.id}`}
-                      onClick={() =>
-                        updateSaved(
-                          saved.filter((schedule) => schedule.id !== item.id),
-                        )
-                      }
-                    >
-                      <Trash2 size={17} />
-                    </button>
-                  </div>
-                </article>
-              ))
-            )}
-          </section>
+        ) : view === "credits" ? <Credits/> : (
+          <SavedSchedules saved={saved} busy={busy} onOpen={openSaved}
+            onRemove={item=>savedAction(()=>saves.remove(item))}
+            onRename={(item,name)=>savedAction(()=>saves.rename(item,name))}/>
+
         )}
       </main>
     </div>

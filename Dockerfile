@@ -1,18 +1,20 @@
-FROM node:22-alpine AS frontend
-WORKDIR /app/frontend
-COPY frontend/package*.json ./
-RUN npm ci
-COPY frontend/ ./
-COPY scheduler/ /app/scheduler/
-RUN npm run build
-
-FROM node:22-alpine
+FROM node:24-alpine AS build
 WORKDIR /app
-COPY Database/package*.json ./Database/
-RUN npm ci --prefix Database --omit=dev
-COPY Database/ ./Database/
-COPY scheduler/ ./scheduler/
-COPY --from=frontend /app/frontend/dist ./frontend/dist
+COPY frontend/package*.json frontend/
+RUN npm --prefix frontend ci
+COPY frontend frontend
+COPY scheduler scheduler
+RUN npm --prefix frontend run build
+
+FROM node:24-alpine AS runtime
+WORKDIR /app
+COPY backend/package*.json backend/
+RUN npm --prefix backend ci --omit=dev
+COPY backend backend
+COPY Database Database
+COPY scheduler scheduler
+COPY --from=build /app/frontend/dist frontend/dist
 USER node
+ENV HOST=0.0.0.0 PORT=3001
 EXPOSE 3001
-CMD ["sh", "-c", "node Database/setupDatabase.js && node Database/server.js"]
+CMD ["node", "backend/server.js"]
