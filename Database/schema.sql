@@ -1,11 +1,11 @@
-CREATE TABLE courses (
+CREATE TABLE IF NOT EXISTS courses (
     course_code VARCHAR(20) PRIMARY KEY,
     course_title VARCHAR(255),
     offer_dept VARCHAR(255),
     acad_career VARCHAR(20)
 );
 
-CREATE TABLE sections (
+CREATE TABLE IF NOT EXISTS sections (
     section_id INT AUTO_INCREMENT PRIMARY KEY,
 
     class_number INT NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE sections (
         REFERENCES courses(course_code)
 );
 
-CREATE TABLE meetings (
+CREATE TABLE IF NOT EXISTS meetings (
     meeting_id INT AUTO_INCREMENT PRIMARY KEY,
 
     class_number INT NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE meetings (
     venue VARCHAR(100)
 );
 
-CREATE TABLE instructors (
+CREATE TABLE IF NOT EXISTS instructors (
     instructor_id INT AUTO_INCREMENT PRIMARY KEY,
 
     class_number INT NOT NULL,
