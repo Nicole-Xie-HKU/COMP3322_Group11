@@ -1,0 +1,41 @@
+{
+  "name": "hkuplan-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HKUPlan local backend integration",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=../.env server.js",
+    "dev": "node --env-file-if-exists=../.env --watch server.js",
+    "db:migrate": "node --env-file-if-exists=../.env database/migrate.js",
+    "db:import": "node --env-file-if-exists=../.env database/importTimetable.js",
+    "db:setup": "node --env-file-if-exists=../.env database/setupDatabase.js",
+    "test": "node --test tests/*.test.mjs",
+    "test:mysql": "node --env-file-if-exists=../.env --test tests/mysql.integration.mjs",
+    "check": "node scripts/check-project.mjs",
+    "setup:env": "node scripts/create-local-env.cjs",
+    "docs:api": "node scripts/build-openapi.cjs",
+    "smoke": "node --env-file-if-exists=../.env scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.0.0",
+    "helmet": "^8.0.0",
+    "mysql2": "^3.24.4",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.0.0",
+    "supertest": "^7.0.0",
+    "ajv": "^8.17.1"
+  },
+  "overrides": {
+    "exceljs": {
+      "uuid": "^11.1.1"
+    }
+  }
+}
