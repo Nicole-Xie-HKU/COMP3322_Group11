@@ -5,7 +5,7 @@ export async function request(path, options = {}) {
   });
   const data = await response.json();
   if (!response.ok)
-    throw new Error(data.error || "Something went wrong. Please try again.");
+    throw new Error(data.error?.message || data.error || "Something went wrong. Please try again.");
   return data;
 }
 
@@ -21,14 +21,14 @@ export function getCourse(term, code) {
   );
 }
 
-export function generateSchedules(term, courses, locked) {
+export function generateSchedules(term, courses, locked, cursor) {
   return request("/schedules/generate", {
     method: "POST",
     body: JSON.stringify({
       term,
       courseCodes: courses.map((course) => course.code),
       locked,
-      maxResults: 100,
+      maxResults: 100, cursor,
     }),
   });
 }
