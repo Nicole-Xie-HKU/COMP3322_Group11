@@ -26,7 +26,7 @@ Database/                       ← 新增 5 个文件
 
 ## Frontend
 ```js
-import { generateSchedules, detectConflicts, toFullCalendarEvents } from '../scheduler/scheduler.js';
+import { generateSchedules, detectConflicts } from '../scheduler/scheduler.js';
 import { toFullCalendarEvents, toPrintRows, toICS } from '../scheduler/export.js';
 ```
 - 手动选课实时标红 → `detectConflicts(selected, blocked)`

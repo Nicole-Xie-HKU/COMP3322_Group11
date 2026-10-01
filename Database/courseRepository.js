@@ -2,13 +2,13 @@ const { getPool } = require('./db');
 const { toAlgorithmFormat } = require('./courseMapper');
 
 async function getTerms() {
-  const [rows] = await getPool().query('SELECT DISTINCT term FROM sections ORDER BY term');
-  return rows.map(r => ({ id: r.term, name: r.term }));
+  const [rows] = await getPool().query(
+    'SELECT term, MIN(start_date) AS startDate, MAX(end_date) AS endDate FROM meetings GROUP BY term ORDER BY term');
+  return rows.map(r => ({ id: r.term, name: r.term, startDate: r.startDate, endDate: r.endDate }));
 }
 
 async function searchCourses(term, q, limit = 30) {
   const kw = String(q || '').trim();
-  if (!kw) return [];
   const [rows] = await getPool().query(
     `SELECT c.course_code AS code, c.course_title AS title, c.offer_dept AS dept, c.acad_career AS career,
             COUNT(s.class_number) AS sectionCount
@@ -38,7 +38,7 @@ async function getCoursesForScheduling(term, codes) {
     [term, nums]) : [[]];
   return {
     courses: toAlgorithmFormat(cRows, sRows, mRows, iRows),
-    notFound: list.filter(c => !cRows.some(r => r.course_code === c)),
+    notFound: list.filter(c => !sRows.some(r => r.course_code === c)),
   };
 }
 

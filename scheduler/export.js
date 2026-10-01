@@ -1,18 +1,25 @@
 import { fmtMin } from './scheduler.js';
 
-const PALETTE = ['#2563eb', '#16a34a', '#db2777', '#ea580c', '#7c3aed', '#0891b2', '#ca8a04', '#dc2626'];
+const PALETTE = ['#bed8b5', '#b9d5df', '#e5d3ac', '#d3c5df', '#e5bdba', '#b9d8cc', '#e1d7b5', '#c9cee5'];
 export const colorFor = (code, codes) => PALETTE[Math.max(0, codes.indexOf(code)) % PALETTE.length];
 
+function nextDate(value) {
+  if (!value) return undefined;
+  const date = new Date(`${value}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
 export function toFullCalendarEvents(schedule, termInfo = {}, blocked = []) {
-  const codes = [...new Set(schedule.sections.map(s => s.courseCode))];
+  const codes = [...new Set(schedule.sections.map(s => s.courseCode))].sort();
   const ev = schedule.sections.flatMap(s => s.meetings.map(m => ({
-    id: `${s.courseCode}-${s.id}-${m.day}-${m.start}`,
+    id: `${s.courseCode}-${s.id}-${m.day}-${m.start}-${m.startDate ?? ''}-${m.venue ?? ''}`,
     title: `${s.courseCode} ${s.id}`,
     daysOfWeek: [m.day % 7],
     startTime: fmtMin(m.start), endTime: fmtMin(m.end),
-    startRecur: m.startDate ?? termInfo.startDate, endRecur: m.endDate ?? termInfo.endDate,
+    startRecur: m.startDate ?? termInfo.startDate, endRecur: nextDate(m.endDate ?? termInfo.endDate),
     color: colorFor(s.courseCode, codes),
-    extendedProps: { venue: m.venue, instructor: s.instructor, alternatives: s.alternatives },
+    extendedProps: { courseCode: s.courseCode, sectionId: s.id, venue: m.venue, instructor: s.instructor, alternatives: s.alternatives },
   })));
   const bl = blocked.map((b, i) => ({
     id: `blocked-${i}`, title: b.label ?? '不排课', daysOfWeek: [b.day % 7],

@@ -25,6 +25,8 @@ function toAlgorithmFormat(courseRows, sectionRows, meetingRows, instructorRows)
       id: s.class_section,
       classNumber: s.class_number,
       instructor: (instBy.get(s.class_number) || []).join('; ') || null,
+      tba: !(mtgBy.get(s.class_number) || []).length || (mtgBy.get(s.class_number) || []).some(m =>
+        dayNum(m.day) == null || toMinutes(m.start_time) == null || toMinutes(m.end_time) == null),
       meetings: (mtgBy.get(s.class_number) || []).flatMap(m => {
         const day = dayNum(m.day), st = toMinutes(m.start_time), en = toMinutes(m.end_time);
         if (day == null || st == null || en == null || en <= st) return [];   // TBA / 脏数据

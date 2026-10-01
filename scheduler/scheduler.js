@@ -84,7 +84,7 @@ function buildOptions(courses, opts) {
 
     const map = new Map();
     for (const raw of pool) {
-      const s = { ...raw, courseCode: c.code, courseTitle: c.title, credits: c.credits ?? 6, creditsKnown: c.credits != null, alternatives: [] };
+      const s = { ...raw, courseCode: c.code, courseTitle: c.title, credits: c.credits ?? 6, creditsKnown: c.creditsKnown ?? (c.credits != null), alternatives: [] };
       const k = s.meetings.map(m => `${m.day}-${m.start}-${m.end}-${m.startDate ?? ''}-${m.endDate ?? ''}`).sort().join('|');
       const ex = map.get(k);
       if (!ex) map.set(k, s); else ex.alternatives.push(s.id);
@@ -143,7 +143,7 @@ export function generateSchedules(courses, options = {}) {
   })(0);
 
   found.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
-  const res = { ...base, schedules: found.slice(0, opts.maxResults), total: found.length, truncated };
+  const res = { ...base, schedules: found.slice(0, opts.maxResults), total: found.length, truncated: truncated || found.length > opts.maxResults };
   if (!found.length && !opts._noDiagnose) res.diagnosis = findConflictPairs(courses, opts);
   return res;
 }

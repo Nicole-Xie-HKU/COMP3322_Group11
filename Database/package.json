@@ -1,13 +1,18 @@
 {
   "dependencies": {
+    "express": "^5.1.0",
     "mysql2": "^3.24.4"
   },
   "name": "database",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "setup": "node setupDatabase.js",
+    "import": "node importCourses.js",
+    "test": "node --test ../tests/*.test.mjs"
   },
   "keywords": [],
   "author": "",

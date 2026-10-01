@@ -52,8 +52,9 @@
 ## 5. 后端 API（路由 `Database/scheduleRoutes.js`）
 | 方法 | 路径 | 说明 | 状态码 |
 |---|---|---|---|
-| GET  | `/api/terms` | 学期列表 `{id,name}` | 200 |
-| GET  | `/api/courses?term=&q=` | 搜索课程 | 200 / 400 |
+| GET  | `/api/terms` | 学期列表 `{id,name,startDate,endDate}` | 200 |
+| GET  | `/api/courses?term=&q=` | 搜索课程；省略 q 返回前 30 门供下拉浏览 | 200 / 400 |
+| GET  | `/api/courses/:code?term=` | 课程详情与完整 sections；TBA 用 `tba` 标记 | 200 / 400 / 404 |
 | POST | `/api/schedules/generate` | body 见第 3 节 + `courseCodes` | 200 / 400 / 404 |
 
 
