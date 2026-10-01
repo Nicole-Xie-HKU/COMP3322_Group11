@@ -79,7 +79,7 @@ export default function CourseCard({
                 {meeting.venue && ` · ${meeting.venue}`}
               </p>
             ))}
-            {(displayed.tba || !displayed.meetings.length) && (
+            {((Array.isArray(displayed.tba) ? displayed.tba.length > 0 : displayed.tba) || !displayed.meetings.length) && (
               <p className="tba-note">
                 Time TBA.
               </p>
