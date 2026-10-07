@@ -11,6 +11,7 @@ function createSavedSchedules(db, catalogue, scheduler) {
       if (result.conflicts.some(pair => pair.hard!==false)) throw new ApiError(400,'SCHEDULE_CONFLICT','Selected sections contain a conflict.', { conflicts: result.conflicts });
       const known = result.loaded.courses.every(course => course.credits!=null);
       return { ...saved, schedule: { id: scheduler.scheduleId(result.selected), sections: result.selected,
+        ...scheduler.meetingCompleteness(result.selected),
         credits: known ? result.loaded.courses.reduce((sum,c) => sum+c.credits,0) : null }, warnings: result.warnings };
     } catch (error) {
       if (stale && [400,404].includes(error.status ?? (error.code==='TERM_NOT_FOUND' ? 404 : 0))) {

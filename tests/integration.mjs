@@ -28,7 +28,7 @@ test('terms, browse list, course search and class details come from MySQL', asyn
   const course = await (await fetch(`${base}/api/courses/COMP3322?${params}`)).json();
   assert.equal(course.sections.length, 1);
   assert.equal(course.sections[0].id, '1A');
-  assert.equal(course.sections[0].meetings.length, 2);
+  assert.equal(course.sections[0].meetings.length, 4);
 });
 
 test('real HKU courses generate eight conflict-free schedules', async () => {
@@ -62,7 +62,7 @@ test('invalid inputs return 400 and unavailable courses return 404', async () =>
     { term, courseCodes: ['COMP3322'], blocked: null }]) {
     assert.equal((await generate(body)).status, 400);
   }
-  assert.equal((await generate({ term: 'not-a-term', courseCodes: ['COMP3322'] })).status, 404);
+  assert.equal((await generate({ term: 'not-a-term', courseCodes: ['COMP3322'] })).status, 400);
   assert.equal((await fetch(`${base}/api/courses/MISSING?${params}`)).status, 404);
   assert.equal((await fetch(`${base}/api/does-not-exist`)).status, 404);
 });

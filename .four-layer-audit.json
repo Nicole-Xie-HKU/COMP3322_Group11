@@ -1,0 +1,5 @@
+{
+  "line_exceptions": {
+    "frontend/src/styles.css": "Unmodified, cohesive responsive and print stylesheet retained from the reviewed GitHub revision."
+  }
+}

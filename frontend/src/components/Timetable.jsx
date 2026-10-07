@@ -3,10 +3,12 @@ import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import { ChevronLeft, ChevronRight, Pin } from "lucide-react";
 import { toFullCalendarEvents, toPrintRows } from "../../../scheduler/export";
+import WeeklyCoverage from "./WeeklyCoverage";
 
 export default function Timetable({ schedule, term, locked, onPin, busy }) {
   const calendar = useRef(null);
   const [weekTitle, setWeekTitle] = useState("");
+  const [range, setRange] = useState(null);
   const teachingDates =
     schedule?.sections
       .flatMap((section) =>
@@ -59,6 +61,7 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
           </button>
         </div>
       </div>
+      <WeeklyCoverage schedule={schedule} range={range}/>
       <div className="calendar-wrap">
         <FullCalendar
           ref={calendar}
@@ -86,7 +89,11 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
           events={events}
           eventDisplay="block"
           displayEventTime={false}
-          datesSet={(info) => setWeekTitle(info.view.title)}
+          datesSet={(info) => {
+            setWeekTitle(info.view.title);
+            setRange({ startDate: info.startStr.slice(0, 10),
+              endDate: new Date(Date.parse(`${info.endStr.slice(0, 10)}T00:00:00Z`) - 86400000).toISOString().slice(0, 10) });
+          }}
           eventContent={({ event }) => {
             const { courseCode, sectionId, venue } = event.extendedProps;
             const pinned = locked[courseCode] === sectionId;
@@ -128,6 +135,7 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
               <th>Section</th>
               <th>Day</th>
               <th>Time</th>
+              <th>Teaching dates</th>
               <th>Venue</th>
             </tr>
           </thead>
@@ -138,6 +146,7 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
                 <td>{row.section}</td>
                 <td>{row.day}</td>
                 <td>{row.time}</td>
+                <td>{row.startDate} – {row.endDate}</td>
                 <td>{row.venue}</td>
               </tr>
             ))}

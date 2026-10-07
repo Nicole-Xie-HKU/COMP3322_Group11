@@ -9,4 +9,5 @@ export { scheduleId, seatStatus } from './l0_axioms/identity.js';
 export { sectionsConflict, hitsBlocked, detectConflicts } from './l1_building_blocks/conflicts.js';
 export { DEFAULT_WEIGHTS, scoreSchedule } from './l1_building_blocks/score.js';
 export { validateCourses } from './validate.js';
+export { hasUnknownMeetings, hasImpossibleMeetingDates, meetingCompleteness } from './l0_axioms/completeness.js';
 export { toFullCalendarEvents, toPrintRows, toCSV, toICS } from './export.js';

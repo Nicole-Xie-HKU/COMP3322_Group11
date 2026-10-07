@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
-import { Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check } from "lucide-react";
 import { generateSchedules, getCourse, request } from "./api";
-import { colorFor } from "../../scheduler/export";
-import CourseSearch from "./components/CourseSearch";
-import CourseCard from "./components/CourseCard";
-import Timetable from "./components/Timetable";
 
 import { useSavedSchedules } from "./hooks/useSavedSchedules";
 import Credits from "./components/Credits";
 import SavedSchedules from "./components/SavedSchedules";
+
+import AppHeader from "./components/AppHeader";
+import PlannerSelection from "./components/PlannerSelection";
+import ScheduleResults from "./components/ScheduleResults";
+import { meetingCompleteness, hasImpossibleMeetingDates } from "../../scheduler/scheduler";
 
 export default function App() {
   const [terms, setTerms] = useState([]);
@@ -20,6 +21,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [includeUnknownTimes, setIncludeUnknownTimes] = useState(false);
   const [view, setView] = useState("builder");
   const saves = useSavedSchedules(setError);
   const { saved } = saves;
@@ -95,11 +97,11 @@ export default function App() {
     setBusy(true);
     clearResults();
     try {
-      setResult(await generateSchedules(term, courses, nextLocked));
+      setResult(await generateSchedules(term, courses, nextLocked, undefined, includeUnknownTimes));
       setLocked(nextLocked);
       document
         .getElementById("schedule-panel")
-        .scrollIntoView({ behavior: "smooth", block: "nearest" });
+        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -124,53 +126,26 @@ export default function App() {
   async function openSaved(item) {
     await savedAction(async () => {
       const value=await saves.open(item);
+      if (value.schedule.sections.some(hasImpossibleMeetingDates)) {
+        throw new Error("This saved section has a weekday outside its teaching dates. The source dates need correction.");
+      }
       setTerm(value.term);setCourses(value.courses);setLocked(value.locked);
-      setResult({schedules:[value.schedule],warnings:value.warnings||[],skipped:[],total:1,searchComplete:true});
+      setIncludeUnknownTimes(!meetingCompleteness(value.schedule.sections).fullyVerified);
+      setResult({schedules:[{...value.schedule,...meetingCompleteness(value.schedule.sections)}],warnings:value.warnings||[],skipped:[],total:1,searchComplete:true});
       setIndex(0);setNotice(value.legacy?"Older local save (not stored on server).":"Saved schedule.");setView("builder");
     });
   }
   async function loadMore() {
     setBusy(true);setError("");
     try {
-      const page=await generateSchedules(term,courses,locked,result.nextCursor);
+      const page=await generateSchedules(term,courses,locked,result.nextCursor,includeUnknownTimes);
       setResult(current=>({...page,schedules:[...current.schedules,...page.schedules]}));
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
   return (
     <div className="app-shell">
-      <header className="site-header">
-        <a
-          href="https://www.hku.hk/"
-          target="_blank"
-          rel="noreferrer"
-          className="university-brand"
-          aria-label="The University of Hong Kong"
-        >
-          <img src="/hku-logo.svg" alt="The University of Hong Kong" />
-        </a>
-        <h1>Visual Schedule Builder</h1>
-      </header>
-
-      <nav className="main-nav" aria-label="Main navigation">
-        <div className="nav-inner">
-          <button
-            className={view === "builder" ? "active" : ""}
-            aria-current={view === "builder" ? "page" : undefined}
-            onClick={() => setView("builder")}
-          >
-            BUILD SCHEDULE
-          </button>
-          <button
-            className={view === "saved" ? "active" : ""}
-            aria-current={view === "saved" ? "page" : undefined}
-            onClick={() => setView("saved")}
-          >
-            SAVED SCHEDULES ({saved.length})
-          </button>
-          <button className={view === "credits" ? "active" : ""} onClick={()=>setView("credits")}>CREDITS</button>
-        </div>
-      </nav>
+      <AppHeader view={view} setView={setView} savedCount={saved.length}/>
 
       <main>
         {error && (
@@ -187,161 +162,11 @@ export default function App() {
 
         {view === "builder" ? (
           <div className="planner-layout">
-            <aside className="selection-panel" aria-label="Course selection">
-              <div className="panel-title">
-                <h2>Select courses</h2>
-              </div>
-              <div className="selection-controls">
-                <label htmlFor="term">Term</label>
-                <select
-                  id="term"
-                  value={term}
-                  disabled={busy || !terms.length}
-                  onChange={(event) => changeTerm(event.target.value)}
-                >
-                  {!terms.length && <option>Loading terms…</option>}
-                  {terms.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-                <CourseSearch
-                  key={term}
-                  term={term}
-                  selected={courseCodes}
-                  onSelect={addCourse}
-                  disabled={busy}
-                />
-              </div>
-              <div className="selected-heading">
-                <span>Selected courses</span>
-                <span>{courses.length} / 12</span>
-              </div>
-              <div className="selected-courses">
-                {!courses.length && (
-                  <p className="selection-empty">No courses selected.</p>
-                )}
-                {courses.map((course) => (
-                  <CourseCard
-                    key={course.code}
-                    course={course}
-                    color={colorFor(course.code, courseCodes)}
-                    section={schedule?.sections.find(
-                      (section) => section.courseCode === course.code,
-                    )}
-                    locked={locked[course.code]}
-                    disabled={busy}
-                    onLock={(section) => lockSection(course.code, section)}
-                    onPin={(section) => pinSection(course.code, section)}
-                    onRemove={() => removeCourse(course.code)}
-                  />
-                ))}
-              </div>
-              <div className="generate-area">
-                <button
-                  className="primary-button"
-                  onClick={() => generate()}
-                  disabled={!courses.length || busy}
-                >
-                  {busy ? "Loading…" : "Generate schedules"}
-                </button>
-              </div>
-            </aside>
-
-            <section
-              className="schedule-panel"
-              id="schedule-panel"
-              aria-label="Schedule results"
-            >
-              <div className="schedule-toolbar">
-                <div className="panel-title">
-                  <h2>Schedule results</h2>
-                </div>
-                <div className="schedule-actions">
-                  <button
-                    className="text-button"
-                    disabled={!schedule || alreadySaved || busy || !saves.ready}
-                    onClick={saveSchedule}
-                  >
-                    {alreadySaved ? "Saved" : "Save"}
-                  </button>
-                  <button
-                    className="text-button"
-                    disabled={!schedule}
-                    onClick={() => window.print()}
-                  >
-                    Print
-                  </button>
-                </div>
-              </div>
-              <div className="results-bar">
-                <div className="result-pager">
-                  <button
-                    className="result-arrow"
-                    aria-label="Previous schedule"
-                    disabled={!schedule || busy || index === 0}
-                    onClick={() => setIndex(index - 1)}
-                  >
-                    <ChevronLeft size={35} strokeWidth={3} />
-                  </button>
-                  <div className="result-counter" aria-live="polite">
-                    <span>RESULT</span>
-                    <strong>
-                      {schedule
-                        ? `${index + 1} OF ${result.schedules.length}`
-                        : "0 OF 0"}
-                    </strong>
-                  </div>
-                  <button
-                    className="result-arrow"
-                    aria-label="Next schedule"
-                    disabled={
-                      !schedule || busy || index === result.schedules.length - 1
-                    }
-                    onClick={() => setIndex(index + 1)}
-                  >
-                    <ChevronRight size={35} strokeWidth={3} />
-                  </button>
-                </div>
-              </div>
-              {result && !result.schedules.length && (
-                <div className="message warning" role="status">
-                  {result.searchComplete === false ? "Search is incomplete. Load more results to continue." : "No matching schedule. Change a section or remove a course."}
-                </div>
-              )}
-              {result?.nextCursor && <p className="schedule-note">
-                {result.schedules.length} results loaded; search is not complete.
-                <button className="text-button" disabled={busy} onClick={loadMore}>Load more results</button>
-              </p>}
-              {result?.warnings?.map((warning,i)=><p className="schedule-note" key={i}>{warning}</p>)}
-              {result?.skipped?.length > 0 && (
-                <p className="message warning">
-                  Not scheduled this term:{" "}
-                  {result.skipped.map((item) => item.course).join(", ")}.
-                </p>
-              )}
-              {schedule?.sections.some(
-                (section) => (Array.isArray(section.tba) ? section.tba.length > 0 : section.tba) || !section.meetings.length,
-              ) && (
-                <p className="message warning">
-                  TBA times excluded from conflict checks.
-                </p>
-              )}
-              <Timetable
-                schedule={schedule}
-                term={termInfo}
-                locked={locked}
-                onPin={pinSection}
-                busy={busy}
-              />
-              <div className="calendar-footer">
-                <span>
-                  {schedule ? `${schedule.sections.length} courses` : ""}
-                </span>
-                <span>Hong Kong time</span>
-              </div>
-            </section>
+            <PlannerSelection {...{ terms, term, courses, courseCodes, schedule, locked, busy,
+              changeTerm, addCourse, lockSection, pinSection, removeCourse, generate,
+              includeUnknownTimes, setIncludeUnknownTimes, clearResults }}/>
+            <ScheduleResults {...{ schedule, alreadySaved, busy, saves, saveSchedule, result,
+              index, setIndex, loadMore, termInfo, locked, pinSection }}/>
           </div>
         ) : view === "credits" ? <Credits/> : (
           <SavedSchedules saved={saved} busy={busy} onOpen={openSaved}

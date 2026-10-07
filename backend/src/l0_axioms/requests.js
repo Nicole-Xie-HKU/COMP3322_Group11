@@ -13,16 +13,17 @@ const block = z.strictObject({ day: z.number().int().min(1).max(7), start: minut
   label: z.string().trim().max(100).optional(), hard: z.boolean().optional() }).refine(value => value.start < value.end, 'start must be before end');
 const blocked = z.array(block).max(32);
 const types = z.enum(['CLASS','LEC','TUT','LAB','SEM','OTH']);
-const locked = z.record(code, z.union([sectionId,z.record(types,sectionId)])).refine(value => Object.keys(value).length <= 12);
+const locked = z.record(code, z.union([sectionId,z.partialRecord(types,sectionId)])).refine(value => Object.keys(value).length <= 12);
 const prefs = z.strictObject({ noMorningBefore: minute.optional(), noEveningAfter: minute.optional(),
   avoidDays: z.array(z.number().int().min(1).max(7)).max(7).optional(), preferFreeDays: z.boolean().optional(),
   minimizeGaps: z.boolean().optional(), lunchBreak: z.strictObject({ from: minute, to: minute, minutes: minute })
     .refine(value => value.from < value.to && value.minutes <= value.to-value.from).optional(),
-  weights: z.record(z.enum(['morning','freeDay','avoidDay','lunch','gapHour','lateEvening','softBlocked']),z.number().min(0).max(100)).optional(),
+  weights: z.partialRecord(z.enum(['morning','freeDay','avoidDay','lunch','gapHour','lateEvening','softBlocked']),z.number().min(0).max(100)).optional(),
 });
 const generation = z.strictObject({ term, courseCodes: z.array(code).min(1).max(12).transform(codes => [...new Set(codes)].sort()),
   blocked: blocked.default([]), locked: locked.default({}), excluded: z.array(sectionKey).max(72).default([]),
   seatPolicy: z.enum(['ignore','allowWaitlist','openOnly']).default('allowWaitlist'), prefs: prefs.default({}),
+  includeUnknownTimes: z.boolean().default(false),
   maxResults: z.number().int().min(1).max(100).default(100), cursor: z.string().max(8192).optional(),
 });
 const selection = z.strictObject({ term, sectionKeys, blocked: blocked.default([]) });

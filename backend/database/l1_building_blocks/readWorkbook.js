@@ -7,9 +7,12 @@ async function readWorkbook(file) {
     for await (const row of worksheet) {
       if (!header) {
         header = row.values.map(value => text(value)?.toUpperCase());
-        for (const required of ['TERM','COURSE CODE','CLASS SECTION','START DATE','END DATE']) {
+        // An absent column is a schema error, not an intentionally blank TBA cell.
+        for (const required of ['TERM','COURSE CODE','CLASS SECTION','CLASS NUMBER','START DATE','END DATE',
+          'START TIME','END TIME','MON','TUE','WED','THU','FRI','SAT','SUN']) {
           if (!header.includes(required)) throw new Error(`Missing workbook column: ${required}`);
         }
+        if (new Set(header.filter(Boolean)).size !== header.filter(Boolean).length) throw new Error('Duplicate workbook column');
         continue;
       }
       const record = {};

@@ -21,12 +21,15 @@ schemas.SelectedSection=object({...schemas.Section.properties,courseCode:string,
 schemas.Block=object({day:{type:'integer',minimum:1,maximum:7},start:minute,end:minute,label:{type:'string',maxLength:100},hard:boolean},['day','start','end']);
 schemas.Preferences=object({noMorningBefore:minute,noEveningAfter:minute,avoidDays:{...array({type:'integer',minimum:1,maximum:7}),maxItems:7},
   preferFreeDays:boolean,minimizeGaps:boolean,lunchBreak:object({from:minute,to:minute,minutes:minute}),
-  weights:{type:'object',additionalProperties:{type:'number',minimum:0,maximum:100}}},[]);
+  weights:object(Object.fromEntries(['morning','freeDay','avoidDay','lunch','gapHour','lateEvening','softBlocked']
+    .map(name=>[name,{type:'number',minimum:0,maximum:100}])),[])},[]);
 schemas.GenerationRequest=object({term,courseCodes:{...array({type:'string',pattern:'^[A-Za-z0-9_-]{1,20}$'}),minItems:1,maxItems:12},
-  blocked:{...array(ref('Block')),maxItems:32},locked:{type:'object',maxProperties:12,additionalProperties:{oneOf:[string,{type:'object',additionalProperties:string}]}},
+  blocked:{...array(ref('Block')),maxItems:32},locked:{type:'object',maxProperties:12,additionalProperties:{oneOf:[string,
+    object(Object.fromEntries(['CLASS','LEC','TUT','LAB','SEM','OTH'].map(type=>[type,string])),[])]}},
   excluded:{...array(key),maxItems:72},seatPolicy:{type:'string',enum:['ignore','allowWaitlist','openOnly']},prefs:ref('Preferences'),
+  includeUnknownTimes:{type:'boolean',default:false},
   maxResults:{type:'integer',minimum:1,maximum:100,default:100},cursor:{type:'string',maxLength:8192}},['term','courseCodes']);
-schemas.Schedule=object({id:string,sections:array(ref('SelectedSection')),credits:nullable(number),score:number,breakdown:array(object({pts:number,why:string}))},['id','sections','credits']);
+schemas.Schedule=object({fullyVerified:boolean,unknownSectionKeys:array(key),id:string,sections:array(ref('SelectedSection')),credits:nullable(number),score:number,breakdown:array(object({pts:number,why:string}))},['id','sections','credits','fullyVerified','unknownSectionKeys']);
 schemas.GenerationResult=object({term:string,totalCredits:nullable(number),knownCredits:number,creditsKnown:boolean,warnings:array(string),
   skipped:array(object({course:string,reason:string})),hasUnknownTimes:boolean,schedules:array(ref('Schedule')),total:integer,totalExact:boolean,
   returnedCount:integer,searchComplete:boolean,truncated:boolean,nextCursor:nullable(string),catalogRevision:integer,
@@ -64,7 +67,7 @@ const paths={
 };
 paths['/guest-session'].post.responses[200]=response(object({expiresAt:string}),'Existing valid session');
 paths['/guest-session'].post.responses[201].headers={'Set-Cookie':{schema:string,description:'hkuplan_guest; HttpOnly; SameSite=Lax; Secure in production'}};
-const spec={openapi:'3.0.3',info:{title:'HKUPlan integrated backend API',version:'0.1.0',description:'Compatible with merged main 5dde468. Legacy term labels are returned; canonical short aliases are accepted. All times use Asia/Hong_Kong wall time.'},
+const spec={openapi:'3.0.3',info:{title:'HKUPlan integrated backend API',version:'0.1.0',description:'Local repair based on main 0ca56ef. Legacy term labels are returned; canonical short aliases are accepted. All times use Asia/Hong_Kong wall time. Unknown-time sections require explicit provisional opt-in.'},
   servers:[{url:'http://localhost:3001/api',description:'Default local port and prefix; both configurable'}],paths,
   components:{securitySchemes:{guestCookie:{type:'apiKey',in:'cookie',name:'hkuplan_guest'}},schemas}};
 fs.mkdirSync('docs',{recursive:true});fs.writeFileSync('docs/openapi.json',JSON.stringify(spec,null,2)+'\n');

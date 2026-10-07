@@ -19,6 +19,9 @@ function createCatalogScheduling(db, scheduler, worker, cursors, config) {
       if (!section) throw new ApiError(400,'SECTION_NOT_FOUND','A selected section does not exist in this term.', { sectionKey: key });
       selected.push({ ...section, courseCode: code, courseTitle: course.title, credits: course.credits, seat: scheduler.seatStatus(section), alternatives: [] });
     }
+    if (selected.some(scheduler.hasImpossibleMeetingDates)) {
+      throw new ApiError(400,'INVALID_MEETING_DATES','A selected section has a weekday outside its teaching dates. The source dates need correction.');
+    }
     if (requireComplete) {
       for (const course of loaded.courses) {
         const types = new Set(course.sections.map(s => s.type ?? 'CLASS'));
@@ -33,7 +36,7 @@ function createCatalogScheduling(db, scheduler, worker, cursors, config) {
     const conflicts = scheduler.detectConflicts(selected,input.blocked);
     const internalConflicts = selected.filter(s => s.meetings.some((a,i) => s.meetings.slice(i+1).some(b => scheduler.meetingsOverlap(a,b))))
       .map(s => ({ a: `${s.courseCode}:${s.id}`, internal: true }));
-    const warnings = selected.some(s => s.tba?.length || !s.meetings.length) ? ['Some selected meeting times are TBA; conflicts cannot be fully verified.'] : [];
+    const warnings = selected.some(scheduler.hasUnknownMeetings) ? ['Some selected meeting times are TBA; conflicts cannot be fully verified.'] : [];
     return { selected, conflicts: [...conflicts,...internalConflicts], warnings, loaded };
   }
   async function conflicts(input) {

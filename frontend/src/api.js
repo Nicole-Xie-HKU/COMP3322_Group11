@@ -21,14 +21,14 @@ export function getCourse(term, code) {
   );
 }
 
-export function generateSchedules(term, courses, locked, cursor) {
+export function generateSchedules(term, courses, locked, cursor, includeUnknownTimes = false) {
   return request("/schedules/generate", {
     method: "POST",
     body: JSON.stringify({
       term,
       courseCodes: courses.map((course) => course.code),
       locked,
-      maxResults: 100, cursor,
+      maxResults: 100, cursor, includeUnknownTimes,
     }),
   });
 }
