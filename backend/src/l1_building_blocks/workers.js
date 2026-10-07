@@ -12,7 +12,17 @@ function createWorkerRunner(entry, config) {
         void worker.terminate(); if (error) reject(error); else resolve(result);
       }
       const timer = setTimeout(() => finish(new ApiError(503,'SCHEDULER_TIMEOUT','Search exceeded its time budget. Reduce the selected courses.')), config.workerTimeoutMs);
-      worker.once('message', message => message.error ? finish(new ApiError(500,'SCHEDULER_FAILED','Schedule generation failed.')) : finish(null,message.result));
+      worker.on('message', message => {
+        // Node --watch sends dependency notifications before the scheduler's own response.
+        // Keep listening without treating those notifications as a result or resetting the timeout.
+        if (!message || typeof message !== 'object') return;
+        if (Object.hasOwn(message,'error')) return finish(new ApiError(500,'SCHEDULER_FAILED','Schedule generation failed.'));
+        if (!Object.hasOwn(message,'result')) return;
+        if (!message.result || typeof message.result !== 'object' || !Array.isArray(message.result.schedules)) {
+          return finish(new ApiError(500,'SCHEDULER_FAILED','Schedule generation failed.'));
+        }
+        finish(null,message.result);
+      });
       worker.once('error', () => finish(new ApiError(500,'SCHEDULER_FAILED','Schedule generation failed.')));
       worker.once('exit', () => { if (!settled) finish(new ApiError(503,'SCHEDULER_STOPPED','Scheduling worker stopped.')); });
     });

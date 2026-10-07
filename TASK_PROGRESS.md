@@ -1,19 +1,20 @@
-# Patch status
+# Project status
 
-## 2026-10-07 — Publication authorized
+## Current setup
 
-The user explicitly authorized pushing these session fixes to GitHub. Branch `fix/timetable-completeness-20261007` contains the verified source-only patch on baseline `0ca56ef192543b8b94cbb5ffa3642c6937146de5`. This supersedes the earlier local-only restriction for this patch; it does not authorize merging into main or deploying production. Runtime files match the locally verified patch. Only publication-status documentation was updated for this handoff.
+Use the root [README](README.md) for a fresh Git clone or GitHub ZIP. The default Docker app URL is http://localhost:3001. Git metadata and any earlier developer's local containers are not required. Preserve existing database credentials and volumes when updating an installation.
 
-## 2026-10-06 — Repair and verification (historical)
+## 2026-10-08 — Launch and ZIP portability repairs
 
-Objective: fix all six findings from the 2026-10-05 review, with English project content and local-only testing. No GitHub upload is authorized.
+The user authorized fixing the launch-audit findings, testing and pushing. This repair is based on main `3647daf7f82ad654d0dacb910aeeafcaf9fa7e12`.
 
-Baseline: `0ca56ef192543b8b94cbb5ffa3642c6937146de5`. Work is isolated in `COMP3322_Group11-local-fix`; existing dirty checkouts and source workbook are preserved. The established project continuity log remains in the separate `COMP3322_Group11-main-integration/PROJECT_LOG.md` checkout.
+Implemented: scheduler workers ignore Node watch notifications and accept only scheduler result/error messages; diagnostic scripts decode file URLs correctly; current setup guidance no longer depends on an old local project or port. Regression coverage includes worker noise/error/exit/timeout, a real watched HTTP server and special-character extraction paths.
 
-Implemented: all six review fixes plus a newly discovered impossible weekday/date guard. New database migrations are not needed. Source TBA and inconsistent dates remain unchanged and must be corrected only from authoritative data.
+Verified from a source-only ZIP extracted under a path containing spaces: 57 unit/regression tests, 14 MySQL checks, six live HTTP checks, Docker setup, frontend build, source audits and restart persistence all passed. The README watch-mode API and Vite workflow also passed live HTTP and Chrome generation checks. See [launch repair details and results](backend/docs/task-progress/2026-10-08-launch-repair.md). No production deployment or native Windows verification is claimed.
 
-Verified: 50 unit/API/scheduler tests; 14 disposable-MySQL tests; 6 real HTTP tests; frontend/Docker builds; outage recovery and restart persistence; browser generation, provisional saves, date-specific navigation and impossible-date exclusion. All-course scheduling checks pass across all three source terms. Audits verify source hashes, dependency boundaries, links and file budgets.
+## History
 
-[Repair details](backend/docs/patch-fixes.md) · [Verification and limits](backend/docs/patch-verification.md) · [Testing](backend/docs/testing.md) · [Setup](README.md)
+- [2026-10-06 local timetable repair and 2026-10-07 publication preparation](backend/docs/task-progress/2026-10-06-timetable-repair.md). This is historical evidence, not portable startup guidance.
+- 2026-10-07: main received the timetable repair through merge commit `3647daf`.
 
-Delivery: `HKUPlan-local-fixes-2026-10-06.patch` beside this folder contains 26 modified and 30 added files, with zero deletions and no secrets/dependencies/build output. `git apply --check` passes against the exact baseline; applying it recreates the fixed source byte-for-byte. Existing checkouts and all 103 review-baseline files remain preserved. Test containers are stopped at handoff; their isolated volume is retained. To resume this local preview from this folder: `docker compose -p hkuplan-patch-20261006 start` (app at localhost:3189). Do not upload without fresh authorization.
+[Timetable repair details](backend/docs/patch-fixes.md) · [Historical verification](backend/docs/patch-verification.md) · [Test commands](backend/docs/testing.md)

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import {execFileSync} from 'node:child_process';
 import {setTimeout as delay} from 'node:timers/promises';
-process.chdir(new URL('../..',import.meta.url).pathname);
+import {fileURLToPath} from 'node:url';
+process.chdir(fileURLToPath(new URL('../..',import.meta.url)));
 const base=`http://127.0.0.1:${process.env.PORT||3001}${process.env.API_PREFIX||'/api'}`;
 if(process.argv.includes('--restart')&&!process.env.COMPOSE_PROJECT_NAME)throw new Error('Set COMPOSE_PROJECT_NAME to the isolated test project before restarting services');
 let cookie='',savedId;

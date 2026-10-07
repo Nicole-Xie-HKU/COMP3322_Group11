@@ -5,6 +5,7 @@ import {mkdtemp,rm,writeFile,mkdir,copyFile,readFile,stat} from 'node:fs/promise
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {spawnSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
 import {workbookWithHeader} from './workbookFixture.mjs';
 const require=createRequire(import.meta.url);
 const {readWorkbook}=require('../database/l1_building_blocks/readWorkbook');
@@ -17,7 +18,7 @@ test('absent time, date and weekday headers fail instead of converting courses t
 });
 test('test runner fails closed for missing or empty suites, and propagates failures',async t=>{
   const folder=await mkdtemp(join(tmpdir(),'hkuplan-runner-'));t.after(()=>rm(folder,{recursive:true,force:true}));
-  const runner=new URL('../scripts/run-tests.mjs',import.meta.url).pathname;
+  const runner=fileURLToPath(new URL('../scripts/run-tests.mjs',import.meta.url));
   // Node's test-child marker suppresses nested test discovery; this probe is an independent CLI invocation.
   const env={...process.env};delete env.NODE_TEST_CONTEXT;
   const run=(...args)=>spawnSync(process.execPath,[runner,...args],{encoding:'utf8',env});
@@ -40,4 +41,15 @@ test('environment setup generates private secrets once and refuses to overwrite 
   assert.equal((await stat(join(folder,'.env'))).mode&0o777,0o600);
   assert.notEqual(spawnSync(process.execPath,[script]).status,0);
   assert.equal(await readFile(join(folder,'.env'),'utf8'),before);
+});
+
+test('smoke CLI accepts a repository path containing spaces and percent signs',async t=>{
+  const folder=await mkdtemp(join(tmpdir(),'hkuplan smoke % path '));t.after(()=>rm(folder,{recursive:true,force:true}));
+  const scripts=join(folder,'backend','scripts');await mkdir(scripts,{recursive:true});
+  const script=join(scripts,'smoke.mjs');await copyFile(new URL('../scripts/smoke.mjs',import.meta.url),script);
+  const env={...process.env};delete env.COMPOSE_PROJECT_NAME;delete env.NODE_TEST_CONTEXT;
+  // Stop at the existing opt-in guard, before any Docker or HTTP side effects.
+  const result=spawnSync(process.execPath,[script,'--restart'],{env,encoding:'utf8',timeout:5000});
+  assert.equal(result.status,1);assert.match(result.stderr,/Set COMPOSE_PROJECT_NAME/);
+  assert.doesNotMatch(result.stderr,/ENOENT/);
 });
