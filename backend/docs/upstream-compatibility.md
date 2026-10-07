@@ -1,27 +1,27 @@
-# Integration against current main
+# Upstream compatibility
 
 [Home](../README.md) · [Database](database-handoff.md) · [Frontend](frontend-handoff.md)
 
-Baseline: merged main `5dde468`, including scheduler-v3 `34e23a0` and frontend/backend `478a5d7`. The earlier local checkout based on `bdd0f22` is preserved separately. Its 88-file upload package is superseded and must not be uploaded wholesale.
+This local patch is based on reviewed GitHub main `0ca56ef192543b8b94cbb5ffa3642c6937146de5`. Earlier local checkouts and the unmodified review snapshot are preserved separately. The patch is not based on their dirty working trees.
 
 ## Preserved
 
-- The entire original Database folder and four existing table layouts.
-- Source workbook, JSON export, R converter and proposal, byte-for-byte.
-- Teammate React layout, CSS, logo, timetable component and Vite proxy.
-- `/api`, port 3001, legacy term labels, empty-query browsing and string section locks.
-- Existing section IDs, current database data and older browser-local saves.
+- Every original `Database/` file: schema, workbook, JSON, converter and legacy examples.
+- Proposal, React stylesheet and logo; hashes are checked by `backend/scripts/protected-sources.json`.
+- `/api`, default port 3001, term aliases, empty-query browsing, string locks and typed locks.
+- Existing database schema/data, section identities and older browser-local saves. No schema migration is needed for this patch.
+- Shared v3 flat-course and legacy v2 scheduler inputs, signed continuation and guest ownership.
 
-## Deliberate updates
+## Intentional changes
 
-One maintained Express backend under backend/ is wired in place of the main-thread example routes. Original Database files remain unchanged and are not the active server entry point. Runtime credentials are non-root; schema setup is an explicit admin step. Sidecar tables add enrichment/activity, revisions and owned guest saves without altering core tables.
+Unknown-time sections are excluded by default, with explicit provisional opt-in and per-result completeness. This tightens the result policy; clients that intentionally need unknown-time options must set `includeUnknownTimes:true`.
 
-The source workbook replaces the lossy JSON import path. Reading-week gaps and multiple weekdays are preserved. Imports validate all rows, reject ambiguous class-number reassignment, preserve IDs/enrichment/saves and roll back DML on failure.
+Workbook imports reject missing time/date/weekday headers before database mutation instead of interpreting them as blank TBA cells. Source TBA cells remain unknown; no source timetable values were fabricated.
 
-The shared teammate-derived scheduler retains flat v3 and v2-offerings inputs. Backtracking is resumable with signed catalogue-bound cursors and a bounded worker. No same-time alternative is discarded; unknown credits/seats stay unknown. Missing requested courses fail rather than disappear. Optional preference sorting applies to one page, not globally.
+Partial typed-lock and weight maps are accepted. ICS date-bounded series get distinct stable identifiers. Startup documentation now requires random secrets and an explicit setup service. Restored backend tests are required by a fail-closed runner. The React app is split into cohesive components without changing its stylesheet.
 
-The frontend receives structured errors, TBA arrays, Load more results and MySQL save/rename/delete. Older localStorage saves are retained and labelled, not automatically sent to the server. Calendar colours/title/pinning properties are preserved. An in-app credits view identifies libraries/team/AI assistance.
+## Publication boundary
 
-Same-path file updates are intentional and enumerated in the handoff manifest. No tracked file is deleted. Existing untouched Database files are not a second competing folder and should not be re-uploaded.
+The original repair on 2026-10-06 was local-only. On 2026-10-07 the user explicitly authorized pushing this session's verified patch. The publication branch is `fix/timetable-completeness-20261007`; the upstream baseline was rechecked unchanged before preparation. This authorization does not include a merge into main, force push, deletion, production deployment or database change. Historical local-only verification remains recorded as such.
 
-User authorized a conflict-free push as icyjfryxu (display jfry_xu) after testing. Authentication and remote freshness must be verified immediately before publication; no force push is allowed.
+[Current patch verification](../../TASK_PROGRESS.md)

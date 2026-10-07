@@ -2,6 +2,7 @@ import { buildGroups } from '../l1_building_blocks/groups.js';
 import { sectionsConflict } from '../l1_building_blocks/conflicts.js';
 import { scoreSchedule } from '../l1_building_blocks/score.js';
 import { creditSummary, scheduleId } from '../l0_axioms/identity.js';
+import { hasUnknownMeetings, meetingCompleteness } from '../l0_axioms/completeness.js';
 
 /** Resumable form of the team's backtracking search. State is bound/signed by the API, not trusted as an HTTP payload. */
 export function generateSchedules(courses, options = {}) {
@@ -10,20 +11,23 @@ export function generateSchedules(courses, options = {}) {
   if (!Number.isInteger(opts.maxResults) || opts.maxResults < 1 || !Number.isInteger(opts.maxNodes) || opts.maxNodes < 1) {
     throw new Error('Search limits must be positive integers');
   }
-  const { groups, skipped, invalidSections } = buildGroups(courses, opts.term, opts);
+  const { groups, skipped, invalidSections, unknownSections, invalidDateSections } = buildGroups(courses, opts.term, opts);
   const credits = creditSummary(courses);
   const warnings = [];
+  if (invalidDateSections.length) warnings.push(`Sections excluded because a stated weekday never occurs within its teaching dates: ${invalidDateSections.join(', ')}. The source dates need correction; no replacement date was guessed.`);
   if (invalidSections.length) warnings.push(`${invalidSections.length} sections have overlapping source meetings and were excluded (${invalidSections.slice(0,5).join(', ')}${invalidSections.length>5?', ...':''}). Ask the database team to verify possible room/date overrides; no override was guessed.`);
   const sections = courses.flatMap(c => c.offerings.find(o => o.term === opts.term)?.sections ?? []);
-  const hasUnknownTimes = sections.some(s => s.tba?.length || !s.meetings.length);
+  const hasUnknownTimes = sections.some(hasUnknownMeetings);
   if (!credits.creditsKnown) warnings.push('Some credits are unknown; totalCredits is not a verified total.');
   if (sections.some(s => s.seatsLeft == null)) warnings.push('Some seat counts are unknown; this is not live registration availability.');
-  if (hasUnknownTimes) warnings.push('Some meeting times are TBA; absence of a detected conflict is not proof of no conflict.');
+  if (unknownSections.length) warnings.push(`${unknownSections.length} section(s) with unknown meeting times excluded. Enable provisional results to include them.`);
   if (opts.maxCredits && credits.totalCredits != null && credits.totalCredits > opts.maxCredits) warnings.push('Known credits exceed the requested limit.');
   const base = { term: opts.term, ...credits, warnings, skipped, hasUnknownTimes };
   if (!groups.length || skipped.length || groups.some(g => !g.options.length)) {
     return { ...base, schedules: [], total: 0, totalExact: true, returnedCount: 0, searchComplete: true, truncated: false, continuation: null,
-      diagnosis: [{ message: skipped.length ? 'A requested course is not offered in this term.' : 'No section combination satisfies the selection constraints.' }] };
+      diagnosis: [{ message: skipped.length ? 'A requested course is not offered in this term.' : unknownSections.length
+        ? 'No fully timed combination matches. Change a section or explicitly include provisional results with unknown times.'
+        : 'No section combination satisfies the selection constraints.' }] };
   }
   const state = opts.state ? structuredClone(opts.state) : { depth: 0, next: Array(groups.length).fill(0), chosen: Array(groups.length).fill(0), emitted: 0 };
   if (!Number.isInteger(state.depth) || state.depth < 0 || state.depth >= groups.length ||
@@ -42,7 +46,7 @@ export function generateSchedules(courses, options = {}) {
     state.chosen[depth] = index;
     if (depth + 1 === groups.length) {
       const selection = [...chosen, candidate]; state.emitted++;
-      found.push({ id: scheduleId(selection), sections: selection, credits: credits.totalCredits,
+      found.push({ id: scheduleId(selection), sections: selection, credits: credits.totalCredits, ...meetingCompleteness(selection),
         ...scoreSchedule(selection, { ...opts.prefs, blocked: opts.blocked }) });
     } else { state.depth++; state.next[state.depth] = 0; }
   }

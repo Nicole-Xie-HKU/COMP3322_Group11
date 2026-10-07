@@ -77,6 +77,7 @@ export default function CourseCard({
                 {days[meeting.day]} {fmtMin(meeting.start)}–
                 {fmtMin(meeting.end)}
                 {meeting.venue && ` · ${meeting.venue}`}
+                {meeting.startDate && <small> ({meeting.startDate} – {meeting.endDate})</small>}
               </p>
             ))}
             {((Array.isArray(displayed.tba) ? displayed.tba.length > 0 : displayed.tba) || !displayed.meetings.length) && (

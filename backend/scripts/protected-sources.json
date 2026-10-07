@@ -1,0 +1,22 @@
+{
+  "Database/2026-27 class_timetable_20260902.xlsx": "12e6923df5e9b2036fac954f81f4fc220dec3861608ac06a8dad81fde16fd0c3",
+  "Database/schema.sql": "afeee263bf2031e2c11f47fad9c5e5868ec65fc6d501b85e6b1794f3ab1bd6da",
+  "Database/importCourses.js": "5e828f8937b635f7d9c2841dced824c095ef1e0cf9d0cf5b6d961d0bc5ea6ca3",
+  "Database/server.js": "b206339e6d765c00ff0d89cce318fb8925ab2847041166deabd3b2c9dd3b256a",
+  "Database/db.js": "7819bea58eecbd435d8f83755f20d89284db5d1e22955ca1fb766af6d6d48847",
+  "Database/scheduleRoutes.js": "5b6e97dd14adac4ea591ca7eaa880304d96817b08ae1f9c160969cbfdf0494c7",
+  "Database/BACKEND_README.md": "9bef84d08a5c407870a1dc2d933f0de25d735c1f86ede19881a3cea1c3320296",
+  "Database/courseRepository.js": "70e8847b70c0654dbf0c6904a1434982ecac0354a636308bbe4e661eb004b4bd",
+  "Database/.gitignore": "dba27c31aad935787bb275c3e5e4e957708f15386de599eff1db476022cd7e4c",
+  "Database/package-lock.json": "7d33f64f3b602c8b7a39682085b835fbeeec8f9ce3c89c77e863968b818df36b",
+  "Database/package.json": "e685fdf2108183ffa2d5db5f9fc3795faf02336e6a22b0da77b7e986899e88a0",
+  "Database/docker-compose.yml": "1c66deb24891fd50cb25678c0da24164404674b05cda5f4d64df8aec7ba004fe",
+  "Database/HKU_timetable_2026-2027.json": "50678e1f5a4128c5d6e24e152b1f4a5fcddb39e094dcda77b5b3986a75c449ba",
+  "Database/excel_to_json_timetable.R": "d35e5bca309e396fe9e1f17e23410d47852954bcb1a61bfc6d5858c679806e54",
+  "Database/.env.example": "aa556a8fce3139522dd4b63b350dd8e5f75cb58bb95ac5d64f5005774d0789b7",
+  "Database/courseMapper.js": "2c41cda20ed4bea26eaa54064595f8e353ddec50038d5fee4e2e4ba4da5e702c",
+  "Database/setupDatabase.js": "65314bcfcb204b66421da59a69d77acf1fd54c3f020643aa50722eb8f2ba19ef",
+  "proposal/Proposal.md": "ec80589d728a39b83850172efcdab802f6be1eda3973ac11646fe3adde1a7a86",
+  "frontend/src/styles.css": "2ce6c5055b37d3c5715d00b877d243085761e06b31f5349ca081357c9e41b6ea",
+  "frontend/public/hku-logo.svg": "8015f43dbdef80cb7c77f4ad2ec3236abd6c28d912c848702bde7ebada5b02be"
+}

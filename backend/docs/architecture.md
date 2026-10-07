@@ -21,7 +21,7 @@ flowchart LR
 - `backend/database/l0_axioms`: source-row interpretation and DTO mapping. `l1_building_blocks`: workbook/SQL mechanisms. `l2_workflows`: snapshots, imports and persistence. `backend/database/public.js` is the public L2 facade.
 - `scheduler/l0_axioms`: time, identity and v2/v3 normalization. `l1_building_blocks`: conflict predicates, candidate groups and retained v3 scoring. `l2_workflows`: resumable backtracking. `scheduler.js`, `validate.js`, `export.js` and `worker.js` are public entrypoints.
 
-Imports must not point upward or form cycles. Cross-module orchestration uses public interfaces. New backend sources stay below 200 lines; documentation is split by responsibility. The existing App.jsx and unmodified styles.css have explicit continuity exceptions in .four-layer-audit.json. Root composition files are not mislabeled as L0. OpenAPI JSON and lockfiles are generated/declarative outputs, so their size is not a source-line exception; the API generator remains below the source budget. Original proposal/source files are preserved, not repaginated.
+Imports must not point upward or form cycles. Cross-module orchestration uses public interfaces. New backend sources stay below 200 lines; documentation is split by responsibility. The unmodified styles.css has a documented continuity exception in .four-layer-audit.json; App.jsx is split into cohesive components. Root composition files are not mislabeled as L0. OpenAPI JSON and lockfiles are generated/declarative outputs, so their size is not a source-line exception; the API generator remains below the source budget. Original proposal/source files are preserved, not repaginated.
 
 ## Follow one request
 

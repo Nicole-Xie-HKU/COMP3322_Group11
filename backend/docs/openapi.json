@@ -3,7 +3,7 @@
   "info": {
     "title": "HKUPlan integrated backend API",
     "version": "0.1.0",
-    "description": "Compatible with merged main 5dde468. Legacy term labels are returned; canonical short aliases are accepted. All times use Asia/Hong_Kong wall time."
+    "description": "Local repair based on main 0ca56ef. Legacy term labels are returned; canonical short aliases are accepted. All times use Asia/Hong_Kong wall time. Unknown-time sections require explicit provisional opt-in."
   },
   "servers": [
     {
@@ -2280,11 +2280,44 @@
           },
           "weights": {
             "type": "object",
-            "additionalProperties": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 100
-            }
+            "properties": {
+              "morning": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "freeDay": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "avoidDay": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "lunch": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "gapHour": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "lateEvening": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "softBlocked": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "additionalProperties": false
           }
         },
         "additionalProperties": false
@@ -2322,9 +2355,27 @@
                 },
                 {
                   "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
+                  "properties": {
+                    "CLASS": {
+                      "type": "string"
+                    },
+                    "LEC": {
+                      "type": "string"
+                    },
+                    "TUT": {
+                      "type": "string"
+                    },
+                    "LAB": {
+                      "type": "string"
+                    },
+                    "SEM": {
+                      "type": "string"
+                    },
+                    "OTH": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
                 }
               ]
             }
@@ -2348,6 +2399,10 @@
           "prefs": {
             "$ref": "#/components/schemas/Preferences"
           },
+          "includeUnknownTimes": {
+            "type": "boolean",
+            "default": false
+          },
           "maxResults": {
             "type": "integer",
             "minimum": 1,
@@ -2368,6 +2423,16 @@
       "Schedule": {
         "type": "object",
         "properties": {
+          "fullyVerified": {
+            "type": "boolean"
+          },
+          "unknownSectionKeys": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{1,20}:[A-Za-z0-9_-]{1,20}$"
+            }
+          },
           "id": {
             "type": "string"
           },
@@ -2407,7 +2472,9 @@
         "required": [
           "id",
           "sections",
-          "credits"
+          "credits",
+          "fullyVerified",
+          "unknownSectionKeys"
         ],
         "additionalProperties": false
       },

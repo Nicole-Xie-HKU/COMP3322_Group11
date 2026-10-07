@@ -12,7 +12,7 @@
     "db:migrate": "node --env-file-if-exists=../.env database/migrate.js",
     "db:import": "node --env-file-if-exists=../.env database/importTimetable.js",
     "db:setup": "node --env-file-if-exists=../.env database/setupDatabase.js",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node scripts/run-tests.mjs tests",
     "test:mysql": "node --env-file-if-exists=../.env --test tests/mysql.integration.mjs",
     "check": "node scripts/check-project.mjs",
     "setup:env": "node scripts/create-local-env.cjs",

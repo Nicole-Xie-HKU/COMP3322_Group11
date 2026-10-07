@@ -13,7 +13,7 @@ Content-Type: application/json
 {"term":"2026-27-S1","courseCodes":["COMP3322","COMP3230"],"maxResults":20}
 ```
 
-A generated response contains `schedules`, `total`, `returnedCount`, `searchComplete`, `totalExact`, `truncated`, `nextCursor`, and `warnings`. Each schedule has a stable selection ID and complete section/meeting details. `credits` and `totalCredits` are null unless known, not guessed.
+A generated response contains `schedules`, `total`, `returnedCount`, `searchComplete`, `totalExact`, `truncated`, `nextCursor`, and `warnings`. Each schedule has a stable selection ID, section details, `fullyVerified`, and `unknownSectionKeys`. Unknown-time sections are excluded unless the request sets `includeUnknownTimes:true`; opted-in incomplete results must be displayed as provisional, not fully verified. `credits` and `totalCredits` are null unless known, not guessed.
 
 For continuation, repeat the same normalized input and add `cursor`. The token expires after an hour and is bound to the catalogue/import revision. Following all pages enumerates all distinct section combinations for this input; an incomplete page is not a claim that all options were found. Preference ranking applies within a page only.
 
