@@ -1,10 +1,13 @@
 import { Pin, X } from "lucide-react";
-import { fmtMin } from "../../../scheduler/scheduler";
+import { fmtMin, sectionTags } from "../../../scheduler/scheduler";
+import { useCourseTags } from "../hooks/useCourseTags";
+import TagRow from "./TagRow";
 
 const days = ["", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export default function CourseCard({
   course,
+  term,
   color,
   locked,
   section,
@@ -15,6 +18,7 @@ export default function CourseCard({
 }) {
   const displayed =
     section || course.sections.find((item) => item.id === locked);
+  const custom = useCourseTags(term, course.code);
   return (
     <article className="course-card" style={{ "--course-color": color }}>
       <div className="course-card-heading">
@@ -85,6 +89,8 @@ export default function CourseCard({
                 Time TBA.
               </p>
             )}
+            <TagRow tags={sectionTags(displayed)} custom={custom.tags} disabled={disabled} compact
+              onAdd={custom.full ? undefined : custom.add} onRemove={custom.remove} />
           </div>
         )}
       </div>

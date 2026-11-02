@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Pin } from "lucide-react";
 import { toFullCalendarEvents, toPrintRows } from "../../../scheduler/export";
 import WeeklyCoverage from "./WeeklyCoverage";
 
-export default function Timetable({ schedule, term, locked, onPin, busy }) {
+export default function Timetable({ schedule, term, locked, blocked = [], onPin, busy }) {
   const calendar = useRef(null);
   const [weekTitle, setWeekTitle] = useState("");
   const [range, setRange] = useState(null);
@@ -17,7 +17,7 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
       .filter(Boolean)
       .sort() || [];
   const startDate = teachingDates[0] || term?.startDate || "2026-09-01";
-  const events = schedule ? toFullCalendarEvents(schedule, term) : [];
+  const events = schedule ? toFullCalendarEvents(schedule, term, blocked) : [];
   const hasWeekend = events.some(
     (event) => event.daysOfWeek.includes(0) || event.daysOfWeek.includes(6),
   );
@@ -62,6 +62,9 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
         </div>
       </div>
       <WeeklyCoverage schedule={schedule} range={range}/>
+      {blocked.length > 0 && (
+        <p className="schedule-note">Grey background blocks are your personal events, not classes.</p>
+      )}
       <div className="calendar-wrap">
         <FullCalendar
           ref={calendar}
@@ -95,7 +98,14 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
               endDate: new Date(Date.parse(`${info.endStr.slice(0, 10)}T00:00:00Z`) - 86400000).toISOString().slice(0, 10) });
           }}
           eventContent={({ event }) => {
-            const { courseCode, sectionId, venue } = event.extendedProps;
+            const { courseCode, sectionId, venue, personal } = event.extendedProps;
+            if (personal) {
+              return (
+                <div className="calendar-event calendar-event--personal">
+                  <strong>{event.title}</strong>
+                </div>
+              );
+            }
             const pinned = locked[courseCode] === sectionId;
             return (
               <div className="calendar-event">
@@ -122,7 +132,9 @@ export default function Timetable({ schedule, term, locked, onPin, busy }) {
             );
           }}
           eventDidMount={({ el, event }) => {
-            el.title = `${event.title}\n${event.extendedProps.venue || "Venue TBA"}\n${event.extendedProps.instructor || ""}`;
+            el.title = event.extendedProps.personal
+              ? `${event.title} (personal event)`
+              : `${event.title}\n${event.extendedProps.venue || "Venue TBA"}\n${event.extendedProps.instructor || ""}`;
           }}
         />
       </div>

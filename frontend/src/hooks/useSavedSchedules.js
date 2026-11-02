@@ -13,10 +13,11 @@ export function useSavedSchedules(setError) {
   useEffect(()=>{
     request('/guest-session',{method:'POST',body:'{}'}).then(refresh).then(()=>setReady(true)).catch(error=>setError(error.message));
   },[]);
-  async function save(term,schedule) {
+  async function save(term,schedule,blocked=[]) {
     await request('/schedules',{method:'POST',body:JSON.stringify({term,
       name:schedule.sections.map(s=>s.courseCode).join(' + ').slice(0,100),
-      sectionKeys:schedule.sections.map(s=>`${s.courseCode}:${s.id}`)})});
+      sectionKeys:schedule.sections.map(s=>`${s.courseCode}:${s.id}`),
+      blocked:blocked.map(({id,...event})=>event)})});
     await refresh();
   }
   async function remove(item) {

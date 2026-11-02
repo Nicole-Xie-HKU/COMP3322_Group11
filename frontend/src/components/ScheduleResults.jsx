@@ -1,9 +1,14 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Timetable from "./Timetable";
 import ScheduleCompleteness from "./ScheduleCompleteness";
+import TagRow from "./TagRow";
+import { scheduleTags } from "../../../scheduler/scheduler";
+import { useCalendarExport } from "../hooks/useCalendarExport";
 
 export default function ScheduleResults({ schedule, alreadySaved, busy, saves, saveSchedule, result,
-  index, setIndex, loadMore, termInfo, locked, pinSection }) {
+  index, setIndex, loadMore, termInfo, locked, pinSection, blocked = [] }) {
+  const { exportCalendar, exportStatus } = useCalendarExport();
+  const tags = schedule ? scheduleTags(schedule, { blocked }) : [];
   return (
     <section
       className="schedule-panel"
@@ -28,6 +33,13 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
             onClick={() => window.print()}
           >
             Print
+          </button>
+          <button
+            className="text-button"
+            disabled={!schedule || busy}
+            onClick={() => exportCalendar(schedule, termInfo)}
+          >
+            Export .ics
           </button>
         </div>
       </div>
@@ -70,6 +82,12 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
         {result.schedules.length} results loaded; search is not complete.
         <button className="text-button" disabled={busy} onClick={loadMore}>Load more results</button>
       </p>}
+      {result?.eventImpact?.length > 0 && (
+        <p className="schedule-note">
+          Personal events removed candidate sections: {result.eventImpact.map(entry =>
+            `${entry.course} (${entry.removed.map(item => item.key.split(":")[1]).join(", ")})`).join("; ")}.
+        </p>
+      )}
       {result?.warnings?.map((warning,i)=><p className="schedule-note" key={i}>{warning}</p>)}
       {result?.skipped?.length > 0 && (
         <p className="message warning">
@@ -78,10 +96,24 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
         </p>
       )}
       <ScheduleCompleteness schedule={schedule}/>
+      {schedule && <TagRow tags={tags} compact/>}
+      {schedule && exportStatus && <p className="schedule-note export-status" role="status">{exportStatus}</p>}
+      {schedule && (
+        <details className="google-help">
+          <summary>Import this file into Google Calendar</summary>
+          <ol>
+            <li>Download the file with <strong>Export .ics</strong> above.</li>
+            <li>In Google Calendar open <strong>Settings → Import &amp; export</strong>, choose the file and a dedicated calendar.</li>
+            <li>Importing copies events once. To refresh, delete that calendar and import the new file again.</li>
+          </ol>
+          <p>Times are Hong Kong time. Sections with an unknown time are skipped and reported above.</p>
+        </details>
+      )}
       <Timetable
         schedule={schedule}
         term={termInfo}
         locked={locked}
+        blocked={blocked}
         onPin={pinSection}
         busy={busy}
       />
