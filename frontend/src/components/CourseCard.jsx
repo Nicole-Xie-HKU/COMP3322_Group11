@@ -66,6 +66,9 @@ export default function CourseCard({
             <option key={item.id} value={item.id}>
               {item.id}
               {item.instructor ? ` · ${item.instructor}` : ""}
+              {(() => {const parts = [...new Set( item.meetings.map((m) => `${days[m.day]} ${fmtMin(m.start)}–${fmtMin(m.end)}` ))];
+                return parts.map((p) => <span key={p}>{` · ${p}`}</span>);
+              })()}
             </option>
           ))}
         </select>
