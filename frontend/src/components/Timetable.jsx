@@ -65,7 +65,9 @@ export default function Timetable({ schedule, term, locked, blocked = [], onPin,
       {blocked.length > 0 && (
         <p className="schedule-note">Grey background blocks are your personal events, not classes.</p>
       )}
-      <div className="calendar-wrap">
+      <p className="calendar-scroll-hint">Scroll sideways for more days.</p>
+      <div className={`calendar-wrap${hasWeekend ? " has-weekend" : ""}`}
+        role="region" aria-label="Weekly timetable" tabIndex={0}>
         <FullCalendar
           ref={calendar}
           plugins={[timeGridPlugin]}

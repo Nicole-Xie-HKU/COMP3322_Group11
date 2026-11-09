@@ -2,6 +2,7 @@
 
 ## Current behavior
 
+- Desktop uses two columns; screens up to 960px use one column with course/timetable links. The weekly grid scrolls horizontally inside its panel.
 - Browse/search one term, select up to 12 courses and generate date-aware combinations.
 - Each source CLASS section bundles all its course meetings; choose one per course.
 - Pin/unpin a section and page through results. Load more follows signed, catalogue-bound continuation tokens; ranking is per page, not global.

@@ -7,25 +7,27 @@ export default function PlannerSelection({ terms, term, courses, courseCodes, sc
   changeTerm, addCourse, lockSection, pinSection, removeCourse, generate,
   includeUnknownTimes, setIncludeUnknownTimes, clearResults, personal }) {
   return (
-    <aside className="selection-panel" aria-label="Course selection">
+    <aside className="selection-panel" id="course-selection" aria-label="Course selection">
       <div className="panel-title">
         <h2>Select courses</h2>
       </div>
       <div className="selection-controls">
-        <label htmlFor="term">Term</label>
-        <select
-          id="term"
-          value={term}
-          disabled={busy || !terms.length}
-          onChange={(event) => changeTerm(event.target.value)}
-        >
-          {!terms.length && <option>Loading terms…</option>}
-          {terms.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label htmlFor="term">Term</label>
+          <select
+            id="term"
+            value={term}
+            disabled={busy || !terms.length}
+            onChange={(event) => changeTerm(event.target.value)}
+          >
+            {!terms.length && <option>Loading terms…</option>}
+            {terms.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <CourseSearch
           key={term}
           term={term}

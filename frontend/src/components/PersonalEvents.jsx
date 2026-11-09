@@ -50,19 +50,27 @@ export default function PersonalEvents({ events, onAdd, onRemove, disabled }) {
         <input aria-label="Event name" maxLength={40} placeholder="Event name (e.g. internship)" value={label}
           onChange={event => setLabel(event.target.value)} disabled={disabled} />
         <div className="event-form-row">
-          <select aria-label="Repeat" value={mode} onChange={event => setMode(event.target.value)} disabled={disabled}>
-            <option value="weekly">Every week</option>
-            <option value="date">One date</option>
-          </select>
-          {mode === "weekly" ? (
-            <select aria-label="Weekday" value={day} onChange={event => setDay(event.target.value)} disabled={disabled}>
-              {DAYS.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
+          <label>Repeat
+            <select aria-label="Repeat" value={mode} onChange={event => setMode(event.target.value)} disabled={disabled}>
+              <option value="weekly">Every week</option>
+              <option value="date">One date</option>
             </select>
-          ) : (
-            <input aria-label="Date" type="date" value={date} onChange={event => setDate(event.target.value)} disabled={disabled} />
-          )}
-          <input aria-label="Start time" type="time" step="300" value={start} onChange={event => setStart(event.target.value)} disabled={disabled} />
-          <input aria-label="End time" type="time" step="300" value={end} onChange={event => setEnd(event.target.value)} disabled={disabled} />
+          </label>
+          <label>{mode === "weekly" ? "Day" : "Date"}
+            {mode === "weekly" ? (
+              <select aria-label="Weekday" value={day} onChange={event => setDay(event.target.value)} disabled={disabled}>
+                {DAYS.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
+              </select>
+            ) : (
+              <input aria-label="Date" type="date" value={date} onChange={event => setDate(event.target.value)} disabled={disabled} />
+            )}
+          </label>
+          <label>Start
+            <input aria-label="Start time" type="time" step="300" value={start} onChange={event => setStart(event.target.value)} disabled={disabled} />
+          </label>
+          <label>End
+            <input aria-label="End time" type="time" step="300" value={end} onChange={event => setEnd(event.target.value)} disabled={disabled} />
+          </label>
         </div>
         <label className="event-hard">
           <input type="checkbox" checked={hard} onChange={event => setHard(event.target.checked)} disabled={disabled} />

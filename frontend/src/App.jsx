@@ -165,6 +165,10 @@ export default function App() {
 
         {view === "builder" ? (
           <div className="planner-layout">
+            <nav className="planner-jumps" aria-label="Planner sections">
+              <a href="#course-selection">Courses</a>
+              <a href="#schedule-panel">Timetable</a>
+            </nav>
             <PlannerSelection {...{ terms, term, courses, courseCodes, schedule, locked, busy,
               changeTerm, addCourse, lockSection, pinSection, removeCourse, generate,
               includeUnknownTimes, setIncludeUnknownTimes, clearResults, personal }}/>
