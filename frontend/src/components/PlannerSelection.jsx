@@ -1,30 +1,33 @@
 import { colorFor } from "../../../scheduler/export";
 import CourseSearch from "./CourseSearch";
 import CourseCard from "./CourseCard";
+import PersonalEvents from "./PersonalEvents";
 
 export default function PlannerSelection({ terms, term, courses, courseCodes, schedule, locked, busy,
   changeTerm, addCourse, lockSection, pinSection, removeCourse, generate,
-  includeUnknownTimes, setIncludeUnknownTimes, clearResults }) {
+  includeUnknownTimes, setIncludeUnknownTimes, clearResults, personal }) {
   return (
-    <aside className="selection-panel" aria-label="Course selection">
+    <aside className="selection-panel" id="course-selection" aria-label="Course selection">
       <div className="panel-title">
         <h2>Select courses</h2>
       </div>
       <div className="selection-controls">
-        <label htmlFor="term">Term</label>
-        <select
-          id="term"
-          value={term}
-          disabled={busy || !terms.length}
-          onChange={(event) => changeTerm(event.target.value)}
-        >
-          {!terms.length && <option>Loading terms…</option>}
-          {terms.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
+        <div>
+          <label htmlFor="term">Term</label>
+          <select
+            id="term"
+            value={term}
+            disabled={busy || !terms.length}
+            onChange={(event) => changeTerm(event.target.value)}
+          >
+            {!terms.length && <option>Loading terms…</option>}
+            {terms.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <CourseSearch
           key={term}
           term={term}
@@ -45,6 +48,7 @@ export default function PlannerSelection({ terms, term, courses, courseCodes, sc
           <CourseCard
             key={course.code}
             course={course}
+            term={term}
             color={colorFor(course.code, courseCodes)}
             section={schedule?.sections.find(
               (section) => section.courseCode === course.code,
@@ -57,6 +61,7 @@ export default function PlannerSelection({ terms, term, courses, courseCodes, sc
           />
         ))}
       </div>
+      <PersonalEvents events={personal.events} onAdd={personal.add} onRemove={personal.remove} disabled={busy} />
       <div className="generate-area">
         <label>
           <input type="checkbox" checked={includeUnknownTimes} disabled={busy}

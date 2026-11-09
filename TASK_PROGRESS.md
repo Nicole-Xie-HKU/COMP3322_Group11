@@ -12,6 +12,12 @@ Implemented: scheduler workers ignore Node watch notifications and accept only s
 
 Verified from a source-only ZIP extracted under a path containing spaces: 57 unit/regression tests, 14 MySQL checks, six live HTTP checks, Docker setup, frontend build, source audits and restart persistence all passed. The README watch-mode API and Vite workflow also passed live HTTP and Chrome generation checks. See [launch repair details and results](backend/docs/task-progress/2026-10-08-launch-repair.md). No production deployment or native Windows verification is claimed.
 
+## 2026-11-02 — Algorithm: personal events, tags and calendar export (local working tree)
+
+Implemented without commits: date-aware personal events (weekly, one-off, or weekly inside a date window) filtered by the shared scheduler with an `eventImpact` report; derived section and schedule tags plus private per-course labels; in-browser `.ics` export with stable hashed UIDs, `DESCRIPTION`, TBA reporting and Google Calendar import guidance.
+
+Verified locally: scheduler, calendar, tags, personal-event, export, API and contract suites pass, and OpenAPI was regenerated with the same 11 paths. Limits: no MySQL integration or browser run was performed, and the child-process suites (`import-safety`, `watch-mode`) fail only because this machine blocks piped child processes.
+
 ## History
 
 - [2026-10-06 local timetable repair and 2026-10-07 publication preparation](backend/docs/task-progress/2026-10-06-timetable-repair.md). This is historical evidence, not portable startup guidance.

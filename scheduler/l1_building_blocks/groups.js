@@ -1,8 +1,10 @@
 import { seatStatus } from '../l0_axioms/identity.js';
+import { describeBlock } from '../l0_axioms/blocks.js';
 import { hitsBlocked, sectionsConflict } from './conflicts.js';
 import { hasUnknownMeetings, hasImpossibleMeetingDates } from '../l0_axioms/completeness.js';
 export function buildGroups(courses, term, options) {
   const groups = [], skipped = [], invalidSections = [], unknownSections = [], invalidDateSections = [];
+  const blockedSections = [], hardBlocks = (options.blocked ?? []).filter(b => b.hard !== false);
   for (const course of [...courses].sort((a, b) => a.code.localeCompare(b.code))) {
     const offering = course.offerings.find(o => o.term === term);
     if (!offering?.sections.length) { skipped.push({ course: course.code, reason: 'Not offered in this term' }); continue; }
@@ -27,7 +29,11 @@ export function buildGroups(courses, term, options) {
         const seat = seatStatus(s);
         if (options.seatPolicy === 'openOnly' && seat !== 'open') return false;
         if (options.seatPolicy === 'allowWaitlist' && seat === 'full') return false;
-        if (hitsBlocked(s, options.blocked.filter(b => b.hard !== false)).length) return false;
+        const events = hitsBlocked(s, hardBlocks);
+        if (events.length) {
+          blockedSections.push({ key: `${course.code}:${s.id}`, type, labels: [...new Set(events.map(describeBlock))] });
+          return false;
+        }
         // Internally conflicting imported meetings cannot form a valid section.
         const overlaps = s.meetings.some((a, i) => sectionsConflict({ meetings: [a] }, { meetings: s.meetings.slice(i + 1) }));
         if (overlaps) invalidSections.push(`${course.code}:${s.id}`);
@@ -42,5 +48,5 @@ export function buildGroups(courses, term, options) {
   }
   groups.sort((a, b) => Number(a.hasParent) - Number(b.hasParent) || a.options.length - b.options.length ||
     a.course.localeCompare(b.course) || a.type.localeCompare(b.type));
-  return { groups, skipped, invalidSections, unknownSections, invalidDateSections };
+  return { groups, skipped, invalidSections, unknownSections, invalidDateSections, blockedSections };
 }

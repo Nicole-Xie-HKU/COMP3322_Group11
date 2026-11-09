@@ -9,8 +9,16 @@ const sectionKey = z.string().trim().regex(/^[A-Za-z0-9_-]{1,20}:[A-Za-z0-9_-]{1
 });
 const sectionKeys = z.array(sectionKey).min(1).max(72).refine(keys => new Set(keys).size === keys.length, 'Duplicate section keys');
 const minute = z.number().int().min(0).max(1440);
-const block = z.strictObject({ day: z.number().int().min(1).max(7), start: minute, end: minute,
-  label: z.string().trim().max(100).optional(), hard: z.boolean().optional() }).refine(value => value.start < value.end, 'start must be before end');
+const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+// A personal event is either a weekly rule (day, optionally bounded by dates) or one explicit date.
+const block = z.strictObject({ day: z.number().int().min(1).max(7).optional(), date: date.optional(),
+  startDate: date.optional(), endDate: date.optional(), start: minute, end: minute,
+  label: z.string().trim().max(100).optional(), hard: z.boolean().optional() })
+  .refine(value => value.start < value.end, 'start must be before end')
+  .refine(value => (value.date != null) !== (value.day != null), 'Provide either day or a one-off date')
+  .refine(value => (value.startDate == null) === (value.endDate == null), 'Provide both startDate and endDate')
+  .refine(value => value.startDate == null || value.startDate <= value.endDate, 'startDate must not be after endDate')
+  .refine(value => value.date == null || value.startDate == null, 'A one-off date cannot also declare a range');
 const blocked = z.array(block).max(32);
 const types = z.enum(['CLASS','LEC','TUT','LAB','SEM','OTH']);
 const locked = z.record(code, z.union([sectionId,z.partialRecord(types,sectionId)])).refine(value => Object.keys(value).length <= 12);

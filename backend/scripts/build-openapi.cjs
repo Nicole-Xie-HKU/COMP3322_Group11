@@ -18,7 +18,7 @@ schemas.Course=object({code:string,title:string,dept:nullable(string),career:nul
 schemas.CourseSummary=object({code:string,title:string,dept:nullable(string),career:nullable(string),credits:nullable(number),sectionCount:integer});
 schemas.SelectedSection=object({...schemas.Section.properties,courseCode:string,courseTitle:string,credits:nullable(number),creditsKnown:boolean,
   seat:{type:'string',enum:['unknown','open','waitlist','full']},alternatives:array(string)},[...schemas.Section.required,'courseCode','courseTitle','credits','seat','alternatives']);
-schemas.Block=object({day:{type:'integer',minimum:1,maximum:7},start:minute,end:minute,label:{type:'string',maxLength:100},hard:boolean},['day','start','end']);
+schemas.Block=object({day:{type:'integer',minimum:1,maximum:7},date,startDate:date,endDate:date,start:minute,end:minute,label:{type:'string',maxLength:100},hard:boolean},['start','end']);
 schemas.Preferences=object({noMorningBefore:minute,noEveningAfter:minute,avoidDays:{...array({type:'integer',minimum:1,maximum:7}),maxItems:7},
   preferFreeDays:boolean,minimizeGaps:boolean,lunchBreak:object({from:minute,to:minute,minutes:minute}),
   weights:object(Object.fromEntries(['morning','freeDay','avoidDay','lunch','gapHour','lateEvening','softBlocked']
@@ -31,16 +31,18 @@ schemas.GenerationRequest=object({term,courseCodes:{...array({type:'string',patt
   maxResults:{type:'integer',minimum:1,maximum:100,default:100},cursor:{type:'string',maxLength:8192}},['term','courseCodes']);
 schemas.Schedule=object({fullyVerified:boolean,unknownSectionKeys:array(key),id:string,sections:array(ref('SelectedSection')),credits:nullable(number),score:number,breakdown:array(object({pts:number,why:string}))},['id','sections','credits','fullyVerified','unknownSectionKeys']);
 schemas.GenerationResult=object({term:string,totalCredits:nullable(number),knownCredits:number,creditsKnown:boolean,warnings:array(string),
-  skipped:array(object({course:string,reason:string})),hasUnknownTimes:boolean,schedules:array(ref('Schedule')),total:integer,totalExact:boolean,
+  skipped:array(object({course:string,reason:string})),hasUnknownTimes:boolean,
+  eventImpact:array(object({course:string,removed:array(object({key:string,type:string,labels:array(string)},['key','labels']))},['course','removed'])),
+  schedules:array(ref('Schedule')),total:integer,totalExact:boolean,
   returnedCount:integer,searchComplete:boolean,truncated:boolean,nextCursor:nullable(string),catalogRevision:integer,
   rankingScope:{type:'string',enum:['none','page']},diagnosis:array(object({message:string},['message'],{additionalProperties:true}))},
-  ['term','totalCredits','warnings','schedules','total','totalExact','returnedCount','searchComplete','truncated','nextCursor','catalogRevision','rankingScope']);
+  ['term','totalCredits','warnings','schedules','total','totalExact','returnedCount','searchComplete','truncated','nextCursor','catalogRevision','rankingScope','eventImpact']);
 schemas.Selection=object({term,sectionKeys:{...array(key),minItems:1,maxItems:72,uniqueItems:true},blocked:{...array(ref('Block')),maxItems:32}},['term','sectionKeys']);
 schemas.SaveRequest=object({...schemas.Selection.properties,name:{type:'string',minLength:1,maxLength:100}},['term','sectionKeys','name']);
 schemas.UpdateRequest=object(schemas.SaveRequest.properties,[],{minProperties:1});
 schemas.SavedSummary=object({id:integer,term:string,name:string,sectionKeys:array(key),blocked:array(ref('Block')),createdAt:string,updatedAt:string});
 schemas.SavedResult=object({...schemas.SavedSummary.properties,schedule:ref('Schedule'),warnings:array(string)});
-schemas.ConflictResult=object({term:string,conflicts:array(object({a:string,b:string,blocked:string,hard:boolean,internal:boolean},['a'])),warnings:array(string),fullyVerified:boolean});
+schemas.ConflictResult=object({term:string,conflicts:array(object({a:string,b:string,blocked:string,hard:boolean,internal:boolean,date:string},['a'])),warnings:array(string),fullyVerified:boolean});
 const response=(schema,description='Success')=>({description,content:{'application/json':{schema}}});
 const errors=Object.fromEntries([400,401,403,404,409,413,429,500,503].map(code=>[code,response(ref('Error'),'Explicit error response')]));
 const parameter=(name,location,schema,required=true)=>({name,in:location,required,schema});

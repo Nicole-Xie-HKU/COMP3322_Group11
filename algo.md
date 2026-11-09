@@ -32,3 +32,9 @@ import { toFullCalendarEvents, toPrintRows, toICS } from '../scheduler/export.js
 - 手动选课实时标红 → `detectConflicts(selected, blocked)`
 - 周课表渲染 → `toFullCalendarEvents(schedule, termInfo, blocked)`，屏蔽时段自动渲染为灰色背景
 - 生成全部方案 → 调 `POST /api/schedules/generate`（屏蔽时间/锁定/排除/偏好参数见 INTERFACE.md 第 3 节）
+
+## 新增能力（2026-11-02，本地未提交）
+
+- 个人事件：`blocked` 支持 `{day,start,end}` 每周重复、`{date,start,end}` 一次性、`{day,startDate,endDate,...}` 限定区间；`hard:false` 只扣分不过滤。生成结果新增 `eventImpact`，按课程列出被个人事件排除的 section。
+- 标签：`sectionTags(section)` / `scheduleTags(schedule,{blocked})` 从课表事实推导标签（早课/晚课/周末/分段/换场地/TBA/名额/空档/事件冲突）；学生的自定义标签只存浏览器 localStorage。
+- 导出：`buildICS(schedule, termInfo, {now, alarmMinutes})` 返回 `{text,eventCount,tbaCount,skippedTba}`，UID 为内容哈希（稳定、短），含 `DESCRIPTION`；`calendarFileName` 生成纯 ASCII 文件名。前端「Export .ics」下载后在 Google 日历「设置 → 导入和导出」导入，导入是一次性拷贝。

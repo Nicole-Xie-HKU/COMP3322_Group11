@@ -1,5 +1,6 @@
 // Calendar events, print rows and downloadable calendar formats.
 import { fmtMin, addDay } from './l0_axioms/time.js';
+import { asBlock } from './l0_axioms/blocks.js';
 
 const PALETTE = ['#bed8b5', '#b9d5df', '#e5d3ac', '#d3c5df', '#e5bdba', '#b9d8cc', '#e1d7b5', '#c9cee5'];
 export const colorFor = (code, codes) => PALETTE[Math.max(0, codes.indexOf(code)) % PALETTE.length];
@@ -15,9 +16,27 @@ export function toFullCalendarEvents(schedule, termInfo = {}, blocked = []) {
     color: colorFor(s.courseCode, codes),
     extendedProps: { courseCode: s.courseCode, sectionId: s.id, venue: m.venue, instructor: s.instructor, seat: s.seat, seatsLeft: s.seatsLeft, alternatives: s.alternatives },
   })));
-  const bl = blocked.map((b, i) => ({ id: `blocked-${i}`, title: b.label ?? 'Blocked time', daysOfWeek: [b.day % 7],
-    startTime: fmtMin(b.start), endTime: fmtMin(b.end), display: 'background', color: '#9ca3af' }));
+  const bl = blocked.map((value, i) => {
+    const b = asBlock(value);
+    if (!b) return null;
+    const base = { id: `blocked-${i}`, title: b.label || 'Personal event', daysOfWeek: [b.day % 7],
+      startTime: fmtMin(b.start), endTime: fmtMin(b.end), display: 'background',
+      color: b.hard === false ? '#dbe4ea' : '#9ca3af', extendedProps: { personal: true, hard: b.hard !== false } };
+    // Dated events render only inside their own date range, not every week.
+    if (b.startDate) { base.startRecur = b.startDate; base.endRecur = addDay(b.endDate ?? b.startDate); }
+    return base;
+  }).filter(Boolean);
   return [...ev, ...bl];
+}
+
+/** Predictable, portable file name: ASCII only, no spaces. */
+export function calendarFileName(schedule, termInfo = {}) {
+  const clean = value => String(value ?? '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  const term = clean(termInfo.id ?? termInfo.name ?? 'term') || 'term';
+  const codes = [...new Set(schedule.sections.map(s => s.courseCode))].sort().map(clean).filter(Boolean).join('-');
+  const dates = schedule.sections.flatMap(s => s.meetings.map(m => m.startDate)).filter(Boolean).sort();
+  const base = ['HKUPlan', term, codes, clean(dates[0] ?? termInfo.startDate)].filter(Boolean).join('-');
+  return `${base.slice(0, 110)}.ics`;
 }
 
 // Print and CSV rows retain separate date ranges.
@@ -45,4 +64,4 @@ export function toCSV(schedule) {
   return '\ufeff' + [Object.keys(rows[0]).join(','), ...rows.map(r => Object.values(r).map(esc).join(','))].join('\r\n');
 }
 
-export { toICS } from './l1_building_blocks/icalendar.js';
+export { buildICS, toICS } from './l1_building_blocks/icalendar.js';

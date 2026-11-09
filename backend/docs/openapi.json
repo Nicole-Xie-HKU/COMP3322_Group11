@@ -2199,6 +2199,18 @@
             "minimum": 1,
             "maximum": 7
           },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
           "start": {
             "type": "integer",
             "minimum": 0,
@@ -2218,7 +2230,6 @@
           }
         },
         "required": [
-          "day",
           "start",
           "end"
         ],
@@ -2522,6 +2533,47 @@
           "hasUnknownTimes": {
             "type": "boolean"
           },
+          "eventImpact": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "course": {
+                  "type": "string"
+                },
+                "removed": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string"
+                      },
+                      "labels": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "labels"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "course",
+                "removed"
+              ],
+              "additionalProperties": false
+            }
+          },
           "schedules": {
             "type": "array",
             "items": {
@@ -2585,7 +2637,8 @@
           "truncated",
           "nextCursor",
           "catalogRevision",
-          "rankingScope"
+          "rankingScope",
+          "eventImpact"
         ],
         "additionalProperties": false
       },
@@ -2812,6 +2865,9 @@
                 },
                 "internal": {
                   "type": "boolean"
+                },
+                "date": {
+                  "type": "string"
                 }
               },
               "required": [
