@@ -11,6 +11,7 @@ import AppHeader from "./components/AppHeader";
 import PlannerSelection from "./components/PlannerSelection";
 import ScheduleResults from "./components/ScheduleResults";
 import { meetingCompleteness, hasImpossibleMeetingDates } from "../../scheduler/scheduler";
+import ScheduleComparison from "./components/ScheduleComparison";
 
 export default function App() {
   const [terms, setTerms] = useState([]);
@@ -24,6 +25,8 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [includeUnknownTimes, setIncludeUnknownTimes] = useState(false);
   const [view, setView] = useState("builder");
+  const [compareSelections, setCompareSelections] = useState([]);
+  const [comparisonData, setComparisonData] = useState(null);
   const saves = useSavedSchedules(setError);
   const personal = usePersonalEvents();
   const { saved } = saves;
@@ -146,6 +149,39 @@ export default function App() {
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
+async function compareSelected() {
+  console.log("COMPARE SELECTED RUNNING");
+
+  if (compareSelections.length !== 2) {
+    return;
+  }
+
+  setBusy(true);
+
+  try {
+
+    const left =
+      await saves.open(compareSelections[0]);
+
+    const right =
+      await saves.open(compareSelections[1]);
+
+    setComparisonData({
+      left,
+      right
+    });
+
+  } finally {
+
+    setBusy(false);
+
+  }
+
+}
+
+  console.log("APP compareSelections", compareSelections);
+  console.log("APP comparisonData", comparisonData);
+  console.log("comparisonData =", comparisonData);
   return (
     <div className="app-shell">
       <AppHeader view={view} setView={setView} savedCount={saved.length}/>
@@ -175,12 +211,34 @@ export default function App() {
             <ScheduleResults {...{ schedule, alreadySaved, busy, saves, saveSchedule, result,
               index, setIndex, loadMore, termInfo, locked, pinSection, blocked: personal.events }}/>
           </div>
-        ) : view === "credits" ? <Credits/> : (
-          <SavedSchedules saved={saved} busy={busy} onOpen={openSaved}
-            onRemove={item=>savedAction(()=>saves.remove(item))}
-            onRename={(item,name)=>savedAction(()=>saves.rename(item,name))}/>
+        ) : view === "credits" ? (
+  <Credits />
 
-        )}
+) : comparisonData ? (
+  <ScheduleComparison
+    left={comparisonData.left}
+    right={comparisonData.right}
+    clearComparison={() => {
+      setComparisonData(null);
+      setCompareSelections([]);
+    }}
+  />
+)
+
+ : (
+  <SavedSchedules
+  saved={saved}
+  busy={busy}
+  onOpen={openSaved}
+  onRemove={item => savedAction(() => saves.remove(item))}
+  onRename={(item, name) =>
+    savedAction(() => saves.rename(item, name))
+  }
+  compareSchedules={compareSelections}
+  setCompareSchedules={setCompareSelections}
+  onCompare={compareSelected}
+/>
+)}
       </main>
     </div>
   );
