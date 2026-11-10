@@ -9,6 +9,7 @@ const key={type:'string',pattern:'^[A-Za-z0-9_-]{1,20}:[A-Za-z0-9_-]{1,20}$'};
 const schemas={};
 schemas.Error=object({error:object({code:string,message:string,details:{}},['code','message']),requestId:string});
 schemas.Term=object({id:string,name:string,startDate:date,endDate:date});
+schemas.Department=object({dept:{type:'string',minLength:1,maxLength:255}});
 schemas.Meeting=object({day:{type:'integer',minimum:1,maximum:7},start:minute,end:minute,startDate:nullable(date),endDate:nullable(date),venue:nullable(string)});
 schemas.TbaMeeting=object({startDate:nullable(date),endDate:nullable(date),venue:nullable(string)});
 schemas.Section=object({id:string,type:{type:'string',enum:['CLASS','LEC','TUT','LAB','SEM','OTH']},parent:nullable(string),classNumber:nullable(integer),
@@ -57,7 +58,12 @@ const paths={
  '/health/live':{get:operation('liveness','Process health',object({status:string}))},
  '/health/ready':{get:operation('readiness','Database and schema readiness',object({status:string}))},
  '/terms':{get:operation('getTerms','List terms',array(ref('Term')))},
- '/courses':{get:operation('searchCourses','Search within one term',array(ref('CourseSummary')),{parameters:[parameter('term','query',term),parameter('q','query',{type:'string',maxLength:100,default:''},false),parameter('limit','query',{type:'integer',minimum:1,maximum:100,default:30},false)]})},
+ '/departments':{get:operation('getDepartments','List offering departments',array(ref('Department')))},
+ '/courses':{get:operation('searchCourses','Search within one term',array(ref('CourseSummary')),{parameters:[
+  parameter('term','query',term),parameter('q','query',{type:'string',maxLength:100,default:''},false),
+  {...parameter('dept','query',{type:'array',items:{type:'string',maxLength:255},maxItems:100},false),style:'form',explode:true,
+    description:'Exact offering department names. Repeat dept to include several departments; omit or leave empty for all.'},
+  parameter('limit','query',{type:'integer',minimum:1,maximum:100,default:30},false)]})},
  '/courses/{code}':{get:operation('getCourse','Course details with flat v3 sections',ref('Course'),{parameters:[parameter('code','path',string),parameter('term','query',term)]})},
  '/schedules/conflicts':{post:operation('checkConflicts','Check server-loaded section keys',ref('ConflictResult'),{request:ref('Selection')})},
  '/schedules/generate':{post:operation('generateSchedules','One resumable page; total is exact only when totalExact is true',ref('GenerationResult'),{request:ref('GenerationRequest')})},

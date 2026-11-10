@@ -73,6 +73,23 @@ test('real MySQL lifecycle in a newly created disposable test database',async t=
     await request(app).get('/api/courses').query({term:'2020-21-S1',q:'COMP'}).expect(404);
     await request(app).get('/api/courses').query({term:'2026-27-S1',q:'%'}).expect(200,[]);
   });
+  await t.test('department listing and exact multi-department filtering use real catalogue data',async()=>{
+    const departments=assertApiResponse('get','/departments',await request(app).get('/api/departments').expect(200));
+    const [expected]=await admin.query("SELECT DISTINCT offer_dept AS dept FROM courses WHERE offer_dept IS NOT NULL AND TRIM(offer_dept)<>'' ORDER BY offer_dept");
+    assert.deepEqual(departments,expected);
+    const [available]=await admin.query(`SELECT c.offer_dept AS dept,MIN(c.course_code) AS code FROM courses c
+      JOIN sections s USING(course_code) JOIN backend_section_metadata b USING(section_id)
+      WHERE s.term='2026-27 Sem 1' AND b.is_active=TRUE AND c.offer_dept<>'' GROUP BY c.offer_dept ORDER BY c.offer_dept LIMIT 2`);
+    assert.equal(available.length,2);
+    for(const row of available) {
+      const selected=(await request(app).get('/api/courses').query({term:'2026-27-S1',dept:available.map(item=>item.dept),q:row.code}).expect(200)).body;
+      assert.ok(selected.some(course=>course.code===row.code));
+      assert.ok(selected.every(course=>available.some(item=>item.dept===course.dept)));
+    }
+    const filtered=(await request(app).get('/api/courses').query({term:'2026-27-S1',dept:available[0].dept,limit:1}).expect(200)).body;
+    assert.equal(filtered.length,1);assert.equal(filtered[0].dept,available[0].dept);
+    for(const dept of ['%',"' OR 1=1 --"])await request(app).get('/api/courses').query({term:'2026-27-S1',dept}).expect(200,[]);
+  });
   await t.test('all three terms map to valid data and every single-course default result has real timed occurrences',async()=>{
     for(const term of await db.getTerms()) {
       const [rows]=await admin.execute('SELECT DISTINCT s.course_code FROM sections s JOIN backend_section_metadata b USING(section_id) WHERE s.term=? AND b.is_active=TRUE',[term.id]);

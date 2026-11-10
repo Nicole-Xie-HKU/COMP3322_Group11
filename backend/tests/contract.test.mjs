@@ -6,9 +6,22 @@ import {createHkuplanClient,HkuplanApiError} from '../client/hkuplan-api.js';
 
 test('OpenAPI contract is structurally valid and documents every maintained route',async()=>{
   const spec=await SwaggerParser.validate(fileURLToPath(new URL('../docs/openapi.json',import.meta.url)));
-  assert.equal(Object.keys(spec.paths).length,11);
+  assert.equal(Object.keys(spec.paths).length,12);
+  assert.ok(spec.paths['/departments'].get.responses[200]);
+  const departments=spec.paths['/courses'].get.parameters.find(parameter=>parameter.name==='dept');
+  assert.equal(departments.schema.type,'array');assert.equal(departments.explode,true);
   assert.ok(spec.paths['/guest-session'].post.responses[200]);
   assert.ok(spec.paths['/schedules/generate'].post.responses[409]);
+});
+test('frontend client lists departments and encodes multiple filters as repeated parameters',async()=>{
+  const calls=[];
+  const api=createHkuplanClient({fetchImpl:async url=>{
+    calls.push(url);return {ok:true,status:200,json:async()=>[]};
+  }});
+  await api.getDepartments();
+  await api.searchCourses({term:'2026-27-S1',dept:['Computing','Arts & Humanities']});
+  assert.equal(calls[0],'/api/departments');
+  assert.deepEqual(new URL(calls[1],'http://localhost').searchParams.getAll('dept'),['Computing','Arts & Humanities']);
 });
 test('frontend client maps GET/POST/PUT/DELETE, query encoding, cookies and cancellation',async()=>{
   const calls=[],controller=new AbortController();

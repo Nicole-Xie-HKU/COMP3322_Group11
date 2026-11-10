@@ -14,9 +14,17 @@ export function createHkuplanClient({baseUrl='/api',fetchImpl=globalThis.fetch}=
     if(!response.ok)throw new HkuplanApiError(response.status,result);
     return result;
   }
-  const query=params=>new URLSearchParams(Object.entries(params).filter(([,value])=>value!==undefined)).toString();
+  function query(params) {
+    const search = new URLSearchParams();
+    for (const [key,value] of Object.entries(params)) {
+      if (value === undefined) continue;
+      for (const item of Array.isArray(value) ? value : [value]) search.append(key,item);
+    }
+    return search.toString();
+  }
   return {
     getTerms: options=>call('/terms',options),
+    getDepartments: options=>call('/departments',options),
     searchCourses: (params,options)=>call(`/courses?${query(params)}`,options),
     getCourse: (code,term,options)=>call(`/courses/${encodeURIComponent(code)}?${query({term})}`,options),
     generateSchedules: (body,options)=>call('/schedules/generate',{...options,method:'POST',body}),

@@ -20,6 +20,24 @@ test('live/readiness, catalogue and detail routes work with normalized terms',as
   assert.equal(detail.sections.length,2);assert.equal(detail.credits,null);
   db.unavailable=true;await request(app).get('/api/health/ready').expect(503);
 });
+test('department filters support single and repeated names, keyword intersections and clearing',async t=>{
+  const {app,db}=await setup(t);
+  db.courses=[
+    {...course('COMP1001',[]),dept:'Computing'}, {...course('COMP2001',[]),dept:'Computing'},
+    {...course('MATH1001',[]),dept:'Mathematics'}, {...course('DATA1001',[]),dept:'Applied Computing'},
+    {...course('NONE1001',[]),dept:null}, {...course('NONE2001',[]),dept:' '},
+  ];
+  await request(app).get('/api/departments').expect(200,[{dept:'Applied Computing'},{dept:'Computing'},{dept:'Mathematics'}]);
+  const search=async params=>(await request(app).get('/api/courses').query({term,...params}).expect(200)).body.map(c=>c.code);
+  assert.deepEqual(await search({dept:'Computing'}),['COMP1001','COMP2001']);
+  assert.deepEqual(await search({dept:['Computing','Mathematics']}),['COMP1001','COMP2001','MATH1001']);
+  assert.deepEqual(await search({dept:['Computing','Mathematics'],q:'MATH'}),['MATH1001']);
+  assert.deepEqual(await search({dept:' Computing ',limit:1}),['COMP1001']);
+  assert.deepEqual(await search({dept:'%'}),[]);
+  assert.deepEqual(await search({dept:'Missing'}),[]);
+  assert.equal((await search({dept:''})).length,db.courses.length);
+  await request(app).get('/api/courses').query({term,dept:'x'.repeat(256)}).expect(400);
+});
 test('malformed requests, missing resources, JSON failures and body limits have explicit errors',async t=>{
   const {app,db}=await setup(t);
   for(const url of ['/api/courses','/api/courses?term=bad&q=test'])await request(app).get(url).expect(400);

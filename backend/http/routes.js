@@ -15,43 +15,11 @@ function createRoutes({ db,catalogue,saved,sessions,config }) {
     catch { throw new ApiError(503,'NOT_READY','Database/schema is not ready.'); }
   });
   router.get('/terms',async (req,res) => res.json(await db.getTerms()));
-  router.get('/departments',async (req,res) => {
-
-  try {
-
-    console.log("DEPARTMENTS ROUTE HIT");
-
-    const rows =
-      await db.getDepartments();
-
-    console.log(
-      "DEPARTMENTS FOUND:",
-      rows.length
-    );
-
-    res.json(rows);
-
-  } catch (err) {
-
-    console.error(err);
-
-    throw err;
-
-  }
-
-});
+  router.get('/departments',async (req,res) => res.json(await db.getDepartments()));
   router.get('/courses',async (req,res) => {
-  const query = parse(request.search,req.query);
-
-  res.json(
-    await db.searchCourses(
-      query.term,
-      query.q,
-      query.dept || "",
-      query.limit
-    )
-  );
-});
+    const query = parse(request.search,req.query);
+    res.json(await db.searchCourses(query.term,query.q,query.limit,query.dept));
+  });
   router.get('/courses/:code',async (req,res) => {
     const query = parse(request.detail,req.query), code = parse(request.code,req.params.code);
     res.json(await catalogue.details(code,query.term));
