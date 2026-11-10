@@ -195,18 +195,24 @@ select {
   border: 1px solid #bbb;
   box-shadow: 0 3px 6px #0002;
 }
+.course-search-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.course-search-heading label {
+  margin: 0;
+}
 .dept-tag {
   display: inline-block;
-
-  margin: 4px 0 6px;
-
+  margin: 4px 6px 6px 0;
   padding: 3px 8px;
-
   background: #eef3f5;
   color: #315f84;
-
   border-radius: 999px;
-
   font-size: 10px;
   font-weight: 600;
   line-height: 1.4;
@@ -214,28 +220,30 @@ select {
 
 .dept-filter-panel {
   margin-bottom: 12px;
-  padding: 10px;
+  padding: 12px;
   border: 1px solid #ddd;
   background: #f9f9f9;
   border-radius: 4px;
-
   max-height: 220px;
   overflow-y: auto;
 }
-
+.dept-filter-panel > button {
+  margin-bottom: 10px;
+}
 .dept-filter-option {
   display: flex;
   align-items: center;
   gap: 8px;
-
   margin-bottom: 6px;
-
   font-size: 12px;
+  line-height: 1.5;
+  cursor: pointer;
 }
-
 .dept-filter-option input {
   width: 16px;
   height: 16px;
+  flex-shrink: 0;
+  accent-color: var(--green);
 }
 
 .dropdown-caption {

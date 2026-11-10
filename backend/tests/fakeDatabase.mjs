@@ -4,7 +4,12 @@ export function fakeDatabase() {
   const db={ courses:structuredClone(courses),revision:1,unavailable:false,
     async ready(){if(db.unavailable)throw new Error('offline');},
     async getTerms(){return [{id:term,name:'2026-27 Sem 1',startDate:'2026-09-01',endDate:'2026-11-30'}]},
-    async searchCourses(t,q){if(t!==term)throw Object.assign(new Error('Term not found'),{code:'TERM_NOT_FOUND'});return db.courses.filter(c=>c.code.toLowerCase().includes(q.toLowerCase())||c.title.toLowerCase().includes(q.toLowerCase()))},
+    async getDepartments(){return [...new Set(db.courses.map(c=>c.dept).filter(dept=>dept?.trim()))].sort().map(dept=>({dept}))},
+    async searchCourses(t,q,limit=30,departments=[]){
+      if(t!==term)throw Object.assign(new Error('Term not found'),{code:'TERM_NOT_FOUND'});
+      return db.courses.filter(c=>(c.code.toLowerCase().includes(q.toLowerCase())||c.title.toLowerCase().includes(q.toLowerCase()))
+        && (!departments.length||departments.includes(c.dept))).slice(0,limit);
+    },
     async getCoursesForScheduling(t,codes){
       if(t!==term)throw Object.assign(new Error('Term not found'),{code:'TERM_NOT_FOUND'});
       const found=db.courses.filter(c=>codes.includes(c.code));
