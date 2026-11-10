@@ -1,15 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Plus, Search } from "lucide-react";
-import { searchCourses } from "../api";
+import {
+  searchCourses,
+  getDepartments
+} from "../api";
 
 export default function CourseSearch({ term, selected, onSelect, disabled }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [showFilters, setShowFilters] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [active, setActive] = useState(-1);
   const input = useRef(null);
+
+  useEffect(() => {
+  getDepartments()
+    .then(rows =>
+      setDepartments(
+        rows.map(r => r.dept)
+      )
+    )
+    .catch(() => {});
+}, []);
+
 
   useEffect(() => {
     if (!open || !term) return;
@@ -19,7 +36,15 @@ export default function CourseSearch({ term, selected, onSelect, disabled }) {
     setActive(-1);
     const timer = setTimeout(async () => {
       try {
-        const courses = await searchCourses(term, query, controller.signal);
+        const courses = await searchCourses(
+  		term,
+  	query,
+  	selectedDepartments[0] || "",
+  	controller.signal
+);
+
+	console.log("API RESULTS:", courses);
+
         setResults(courses);
       } catch (err) {
         if (err.name !== "AbortError")
@@ -32,9 +57,10 @@ export default function CourseSearch({ term, selected, onSelect, disabled }) {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [term, query, open]);
+  }, [term, query, open, selectedDepartments]);
+  
 
-  function choose(course) {
+function choose(course) {
     if (selected.includes(course.code) || disabled) return;
     onSelect(course);
     setQuery("");
@@ -70,7 +96,78 @@ export default function CourseSearch({ term, selected, onSelect, disabled }) {
         if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
-      <label htmlFor="course-search">Find a course</label>
+            <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }}
+      >
+        <label htmlFor="course-search">
+          Find a course
+        </label>
+
+        <button
+          type="button"
+          className="text-button"
+          onClick={() =>
+            setShowFilters(!showFilters)
+          }
+        >
+          Filter by Department
+        </button>
+      </div>
+
+	      {showFilters && (
+        <div className="dept-filter-panel">
+
+          <button
+            type="button"
+            className="text-button"
+            onClick={() =>
+              setSelectedDepartments([])
+            }
+          >
+            Show All
+          </button>
+
+          {departments.map(dept => (
+            <label
+              key={dept}
+              className="dept-filter-option"
+            >
+              <input
+                type="checkbox"
+                checked={selectedDepartments.includes(dept)}
+                onChange={(event) => {
+
+                  if (event.target.checked) {
+
+                    setSelectedDepartments([
+                      ...selectedDepartments,
+                      dept
+                    ]);
+
+                  } else {
+
+                    setSelectedDepartments(
+                      selectedDepartments.filter(
+                        d => d !== dept
+                      )
+                    );
+
+                  }
+
+                }}
+              />
+
+              {dept}
+            </label>
+          ))}
+
+        </div>
+      )}
+
       <div className={`search-field ${open ? "is-open" : ""}`}>
         <Search size={18} aria-hidden="true" />
         <input
@@ -127,7 +224,7 @@ export default function CourseSearch({ term, selected, onSelect, disabled }) {
                 role="listbox"
                 aria-label="Course results"
               >
-                {results.map((course, index) => {
+                 {results.map((course, index) => {
                   const added = selected.includes(course.code);
                   return (
                     <li
@@ -145,11 +242,19 @@ export default function CourseSearch({ term, selected, onSelect, disabled }) {
                       >
                         <span>
                           <strong>{course.code}</strong>
-                          <span className="result-title">{course.title}</span>
-                          <small>
-                            {course.sectionCount}{" "}
-                            {course.sectionCount === 1 ? "section" : "sections"}
-                          </small>
+
+			<span className="result-title">
+  				{course.title}
+			</span>
+
+			<span className="dept-tag">
+  				{course.dept}
+			</span>
+
+			<small>
+  				{course.sectionCount}{" "}
+  				{course.sectionCount === 1 ? "section" : "sections"}
+			</small>
                         </span>
                         {added ? <Check size={17} /> : <Plus size={17} />}
                       </button>

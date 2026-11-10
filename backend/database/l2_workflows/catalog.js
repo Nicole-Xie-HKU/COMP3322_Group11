@@ -1,4 +1,10 @@
-const { selectTerm, selectCourses, searchRows, termRows } = require('../l1_building_blocks/catalogQueries');
+const {
+  selectTerm,
+  selectCourses,
+  searchRows,
+  termRows,
+  getDepartments
+} = require('../l1_building_blocks/catalogQueries');
 const { catalogError, toAlgorithmFormat } = require('../l0_axioms/catalog');
 async function withSnapshot(pool, operation) {
   const connection = await pool.getConnection();
@@ -19,9 +25,16 @@ async function getTerms(pool) {
   const [rows] = await pool.query(`${termRows} GROUP BY s.term ORDER BY s.term`);
   return rows;
 }
-async function searchCourses(pool, term, query, limit = 30) {
+async function searchCourses(pool, term, query, dept = "", limit = 30) {
   return withSnapshot(pool, async connection => {
-    await requireTerm(connection, term); return searchRows(connection, term, query, limit);
+    await requireTerm(connection, term);
+  return searchRows(
+  connection,
+  term,
+  query,
+  dept,
+  limit
+);
   });
 }
 async function getCoursesForScheduling(pool, term, codes) {
@@ -36,4 +49,25 @@ async function getCoursesForScheduling(pool, term, codes) {
     return { termInfo, courses, notFound, notOffered, revision: latest.revision };
   });
 }
-module.exports = { withSnapshot, getTerms, searchCourses, getCoursesForScheduling };
+
+async function listDepartments(pool) {
+
+  const connection = await pool.getConnection();
+
+  try {
+
+    const rows = await getDepartments(connection);
+
+    console.log("DEPARTMENTS FOUND:", rows.length);
+
+    return rows;
+
+  } finally {
+
+    connection.release();
+
+  }
+
+}
+
+module.exports = { withSnapshot, getTerms, searchCourses, getCoursesForScheduling, listDepartments };

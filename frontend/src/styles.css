@@ -195,6 +195,49 @@ select {
   border: 1px solid #bbb;
   box-shadow: 0 3px 6px #0002;
 }
+.dept-tag {
+  display: inline-block;
+
+  margin: 4px 0 6px;
+
+  padding: 3px 8px;
+
+  background: #eef3f5;
+  color: #315f84;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.dept-filter-panel {
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background: #f9f9f9;
+  border-radius: 4px;
+
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.dept-filter-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 6px;
+
+  font-size: 12px;
+}
+
+.dept-filter-option input {
+  width: 16px;
+  height: 16px;
+}
+
 .dropdown-caption {
   padding: 9px 10px;
   background: #eee;

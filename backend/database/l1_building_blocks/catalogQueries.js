@@ -28,15 +28,62 @@ async function selectCourses(connection,term,codes) {
     JOIN sections s ON s.class_number=i.class_number AND s.term=i.term WHERE s.section_id IN (?) ORDER BY s.section_id,i.instructor_name`,[ids]);
   return { courseRows,sectionRows,meetingRows,instructorRows };
 }
-async function searchRows(connection,term,query,limit) {
+async function searchRows(connection,term,query,dept,limit) {
   const escaped = query.replace(/[!%_]/g,value=>`!${value}`);
-  const [rows] = await connection.execute(`SELECT c.course_code AS code,c.course_title AS title,c.offer_dept AS dept,
-    c.acad_career AS career,meta.credits,COUNT(s.section_id) AS sectionCount FROM courses c
-    JOIN sections s ON s.course_code=c.course_code AND s.term=?
-    LEFT JOIN backend_section_metadata b ON b.section_id=s.section_id LEFT JOIN backend_course_metadata meta ON meta.course_code=c.course_code
-    WHERE COALESCE(b.is_active,TRUE)=TRUE AND (c.course_code LIKE ? ESCAPE '!' OR c.course_title LIKE ? ESCAPE '!')
-    GROUP BY c.course_code,meta.credits ORDER BY (c.course_code LIKE ? ESCAPE '!') DESC,c.course_code LIMIT ?`,
-  [term,`${escaped}%`,`%${escaped}%`,`${escaped}%`,limit]);
+  const [rows] = await connection.execute(
+  `SELECT
+      c.course_code AS code,
+      c.course_title AS title,
+      c.offer_dept AS dept,
+      c.acad_career AS career,
+      meta.credits,
+      COUNT(s.section_id) AS sectionCount
+    FROM courses c
+    JOIN sections s
+      ON s.course_code = c.course_code
+      AND s.term = ?
+    LEFT JOIN backend_section_metadata b
+      ON b.section_id = s.section_id
+    LEFT JOIN backend_course_metadata meta
+      ON meta.course_code = c.course_code
+    WHERE
+      COALESCE(b.is_active,TRUE)=TRUE
+      AND (
+        c.course_code LIKE ? ESCAPE '!'
+        OR c.course_title LIKE ? ESCAPE '!'
+      )
+      AND (
+        ? = ''
+        OR c.offer_dept LIKE ?
+      )
+    GROUP BY c.course_code, meta.credits
+    ORDER BY
+      (c.course_code LIKE ? ESCAPE '!') DESC,
+      c.course_code
+    LIMIT ?`,
+  [
+    term,
+    `${escaped}%`,
+    `%${escaped}%`,
+    dept,
+    `%${dept}%`,
+    `${escaped}%`,
+    limit
+  ]
+);
   return rows;
 }
-module.exports = { selectTerm,selectCourses,searchRows,termRows };
+
+async function getDepartments(connection) {
+  const [rows] = await connection.execute(`
+    SELECT DISTINCT offer_dept AS dept
+    FROM courses
+    WHERE offer_dept IS NOT NULL
+      AND offer_dept <> ''
+    ORDER BY offer_dept
+  `);
+
+  return rows;
+}
+
+module.exports = { selectTerm,selectCourses,searchRows,termRows, getDepartments };

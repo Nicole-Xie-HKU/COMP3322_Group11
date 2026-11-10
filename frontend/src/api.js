@@ -9,10 +9,26 @@ export async function request(path, options = {}) {
   return data;
 }
 
-export function searchCourses(term, query, signal) {
-  return request(`/courses?${new URLSearchParams({ term, q: query })}`, {
-    signal,
-  });
+export function searchCourses(
+  term,
+  query,
+  department,
+  signal
+) {
+  return request(
+    `/courses?${new URLSearchParams({
+      term,
+      q: query,
+      dept: department || ""
+    })}`,
+    {
+      signal,
+    }
+  );
+}
+
+export function getDepartments() {
+  return request("/departments");
 }
 
 export function getCourse(term, code) {

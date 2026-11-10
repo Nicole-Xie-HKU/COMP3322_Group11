@@ -6,7 +6,11 @@ const { selectSaved } = require('./l1_building_blocks/savedQueries');
 function createDatabase(pool = getPool()) {
   return {
     getTerms: () => catalog.getTerms(pool),
-    searchCourses: (term, query, limit) => catalog.searchCourses(pool, term, query, limit),
+    getDepartments: () => {
+  console.log("catalog.listDepartments =", catalog.listDepartments);
+  return catalog.listDepartments(pool);
+},
+    searchCourses: (term, query, dept, limit) => catalog.searchCourses(pool, term, query, dept, limit),
     getCoursesForScheduling: (term, codes) => catalog.getCoursesForScheduling(pool, term, codes),
     getSession: hash => persistence.getSession(pool, hash),
     createSession: hash => persistence.createSession(pool, hash),

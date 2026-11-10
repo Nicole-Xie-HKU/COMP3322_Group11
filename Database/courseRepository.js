@@ -7,17 +7,48 @@ async function getTerms() {
   return rows.map(r => ({ id: r.term, name: r.term, startDate: r.startDate, endDate: r.endDate }));
 }
 
-async function searchCourses(term, q, limit = 30) {
-  const kw = String(q || '').trim();
+async function searchCourses(term, q, dept = "", limit = 30) {
+	console.log("SEARCH DEBUG", {
+  	term,
+  	q,
+  	dept,
+  	limit
+	});
+
+  const kw = String(q || "").trim();
+
   const [rows] = await getPool().query(
-    `SELECT c.course_code AS code, c.course_title AS title, c.offer_dept AS dept, c.acad_career AS career,
-            COUNT(s.class_number) AS sectionCount
-       FROM courses c JOIN sections s ON s.course_code = c.course_code AND s.term = ?
-      WHERE c.course_code LIKE ? OR c.course_title LIKE ?
-      GROUP BY c.course_code
-      ORDER BY (c.course_code LIKE ?) DESC, c.course_code
-      LIMIT ?`,
-    [term, `${kw}%`, `%${kw}%`, `${kw}%`, Number(limit)]);
+    `
+    SELECT
+      c.course_code AS code,
+      c.course_title AS title,
+      c.offer_dept AS dept,
+      c.acad_career AS career,
+      COUNT(s.class_number) AS sectionCount
+    FROM courses c
+    JOIN sections s
+      ON s.course_code = c.course_code
+      AND s.term = ?
+    WHERE
+      (c.course_code LIKE ? OR c.course_title LIKE ?)
+      AND (? = '' OR c.offer_dept LIKE ?)
+    GROUP BY c.course_code
+    ORDER BY
+      (c.course_code LIKE ?) DESC,
+      c.course_code
+    LIMIT ?
+    `,
+    [
+      term,
+      `${kw}%`,
+      `%${kw}%`,
+      dept,
+      `%${dept}%`,
+      `${kw}%`,
+      Number(limit)
+    ]
+  );
+  console.log("ROWS RETURNED:", rows.length);
   return rows;
 }
 

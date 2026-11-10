@@ -39,7 +39,12 @@ const name = z.string().trim().min(1).max(100).refine(value => !/[\x00-\x1f\x7f]
 const save = z.strictObject({ term, sectionKeys, blocked: blocked.default([]), name });
 const update = z.strictObject({ term: term.optional(), sectionKeys: sectionKeys.optional(), blocked: blocked.optional(), name: name.optional() })
   .refine(value => Object.keys(value).length > 0, 'Provide at least one field');
-const search = z.strictObject({ term, q: z.string().trim().max(100).default(''), limit: z.coerce.number().int().min(1).max(100).default(30) });
+const search = z.strictObject({
+  term,
+  q: z.string().trim().max(100).default(''),
+  dept: z.string().trim().default(''),
+  limit: z.coerce.number().int().min(1).max(100).default(30)
+});
 const detail = z.strictObject({ term });
 function parse(schema, value) {
   const result = schema.safeParse(value);
