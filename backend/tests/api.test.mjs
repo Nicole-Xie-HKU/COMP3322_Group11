@@ -62,6 +62,29 @@ test('generation uses real worker, signed pagination, v3 locks and stale-cursor 
   await request(app).post('/api/schedules/generate').send({...input,cursor:first.nextCursor+'z'}).expect(400);
   db.revision++;const stale=await request(app).post('/api/schedules/generate').send({...input,cursor:first.nextCursor}).expect(409);assert.equal(stale.body.error.code,'CURSOR_STALE');
 });
+test('pinning valid results retains them, unpinning restores choices and conflicting locks explain zero results',async t=>{
+  const {app,db}=await setup(t);
+  db.courses[1].sections[0].meetings=structuredClone(db.courses[0].sections[0].meetings);
+  const input={term,courseCodes:['COMP3322','COMP3230'],maxResults:100};
+  const generate=async locked=>(await request(app).post('/api/schedules/generate').send({...input,locked}).expect(200)).body;
+  const original=await generate({});
+  assert.equal(original.schedules.length,3);assert.equal(original.searchComplete,true);
+  for(const schedule of original.schedules) {
+    for(const section of schedule.sections) {
+      const pinned=await generate({[section.courseCode]:section.id});
+      assert.ok(pinned.schedules.some(candidate=>candidate.id===schedule.id));
+      assert.ok(pinned.schedules.every(candidate=>candidate.sections.some(s=>s.courseCode===section.courseCode&&s.id===section.id)));
+    }
+    const locked=Object.fromEntries(schedule.sections.map(s=>[s.courseCode,s.id]));
+    const allPinned=await generate(locked);
+    assert.deepEqual(allPinned.schedules.map(s=>s.id),[schedule.id]);
+  }
+  const unpinned=await generate({});
+  assert.deepEqual(unpinned.schedules.map(s=>s.id).sort(),original.schedules.map(s=>s.id).sort());
+  const incompatible=await generate({COMP3322:'1A',COMP3230:'1A'});
+  assert.deepEqual(incompatible.schedules,[]);assert.equal(incompatible.searchComplete,true);
+  assert.match(incompatible.diagnosis[0].message,/constraints/i);
+});
 test('conflicts are determined from server data, not client-provided times',async t=>{
   const {app}=await setup(t);
   const result=await request(app).post('/api/schedules/conflicts').send({...selection,name:undefined}).expect(200);

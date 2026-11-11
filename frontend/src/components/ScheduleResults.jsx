@@ -29,7 +29,7 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
           </button>
           <button
             className="text-button"
-            disabled={!schedule}
+            disabled={!schedule || busy}
             onClick={() => window.print()}
           >
             Print
@@ -53,12 +53,12 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
           >
             <ChevronLeft size={35} strokeWidth={3} />
           </button>
-          <div className="result-counter" aria-live="polite">
+          <div className="result-counter" aria-live="polite" aria-busy={busy}>
             <span>{schedule?.fullyVerified === false ? "PROVISIONAL RESULT" : "RESULT"}</span>
             <strong>
               {schedule
                 ? `${index + 1} OF ${result.schedules.length}`
-                : "0 OF 0"}
+                : busy ? "…" : result ? "0 OF 0" : "—"}
             </strong>
           </div>
           <button
@@ -73,7 +73,7 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
           </button>
         </div>
       </div>
-      {result && !result.schedules.length && (
+      {result && !busy && !result.schedules.length && (
         <div className="message warning" role="status">
           {result.searchComplete === false ? "Search is incomplete. Load more results to continue." : (result.diagnosis?.[0]?.message || "No matching schedule. Change a section or remove a course.")}
         </div>
