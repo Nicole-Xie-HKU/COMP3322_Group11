@@ -36,7 +36,7 @@ export default function PersonalEvents({ events, onAdd, onRemove, disabled }) {
       {events.length > 0 && (
         <ul className="event-list">
           {events.map(event => (
-            <li key={event.id} className="event-row">
+            <li key={event.id} className="event-row" style="backgroundColor: #ffffff70">
               <span>{event.label || "Personal event"}</span>
               <span className="event-time">{event.date ?? weekday(event.day)} {fmtMin(event.start)}–{fmtMin(event.end)}</span>
               {event.hard === false && <span className="tag tag--custom">soft</span>}
