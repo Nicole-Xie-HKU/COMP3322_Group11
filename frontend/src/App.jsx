@@ -4,14 +4,13 @@ import { generateSchedules, getCourse, request } from "./api";
 
 import { useSavedSchedules } from "./hooks/useSavedSchedules";
 import { usePersonalEvents } from "./hooks/usePersonalEvents";
-import Credits from "./components/Credits";
-import SavedSchedules from "./components/SavedSchedules";
-
 import AppHeader from "./components/AppHeader";
 import PlannerSelection from "./components/PlannerSelection";
 import ScheduleResults from "./components/ScheduleResults";
-import { meetingCompleteness, hasImpossibleMeetingDates } from "../../scheduler/scheduler";
 import ScheduleComparison from "./components/ScheduleComparison";
+import SavedSchedules from "./components/SavedSchedules";
+import Credits from "./components/Credits";
+import { meetingCompleteness, hasImpossibleMeetingDates } from "../../scheduler/scheduler";
 
 export default function App() {
   const [terms, setTerms] = useState([]);
@@ -33,21 +32,14 @@ export default function App() {
   const schedule = result?.schedules[index];
   const termInfo = terms.find((item) => item.id === term);
   const courseCodes = courses.map((course) => course.code).sort();
-  const alreadySaved =
-    schedule &&
-    saved.some(
-      (item) => !item.legacy && item.term === term && (item.schedule?.id === schedule.id || item.sectionKeys?.slice().sort().join("|") === schedule.sections.map(s => `${s.courseCode}:${s.id}`).sort().join("|")),
-    );
+  const alreadySaved = schedule && saved.some((item) => !item.legacy && item.term === term &&
+    (item.schedule?.id === schedule.id ||
+      item.sectionKeys?.slice().sort().join("|") === schedule.sections.map(s => `${s.courseCode}:${s.id}`).sort().join("|")));
 
   useEffect(() => {
     request("/terms")
-      .then((data) => {
-        setTerms(data);
-        setTerm(data[0]?.id || "");
-      })
-      .catch(() =>
-        setError("Cannot connect to server. Refresh to retry."),
-      );
+      .then((data) => { setTerms(data); setTerm(data[0]?.id || ""); })
+      .catch(() => setError("Cannot connect to server. Refresh to retry."));
   }, []);
 
   function clearResults() {
@@ -65,21 +57,13 @@ export default function App() {
   }
 
   async function addCourse(course) {
-    if (courses.length >= 12) {
-      setError("Maximum 12 courses.");
-      return;
-    }
-    setBusy(true);
-    setError("");
+    if (courses.length >= 12) { setError("Maximum 12 courses."); return; }
+    setBusy(true); setError("");
     try {
       const details = await getCourse(term, course.code);
       setCourses((current) => [...current, details]);
       clearResults();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
+    } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
   function removeCourse(code) {
@@ -99,21 +83,13 @@ export default function App() {
   }
 
   async function generate(nextLocked = locked) {
-    setBusy(true);
-    setError("");
-    setNotice("");
+    setBusy(true); setError(""); setNotice("");
     try {
       setResult(await generateSchedules(term, courses, nextLocked, undefined, includeUnknownTimes, personal.events));
       setIndex(0);
       setLocked(nextLocked);
-      document
-        .getElementById("schedule-panel")
-        ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setBusy(false);
-    }
+      document.getElementById("schedule-panel")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
   function pinSection(code, section) {
@@ -151,55 +127,23 @@ export default function App() {
     } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
-async function compareSelected() {
-  console.log("COMPARE SELECTED RUNNING");
-
-  if (compareSelections.length !== 2) {
-    return;
+  async function compareSelected() {
+    if (compareSelections.length !== 2) return;
+    setBusy(true); setError("");
+    try {
+      const left = await saves.open(compareSelections[0]);
+      const right = await saves.open(compareSelections[1]);
+      setComparisonData({ left, right });
+    } catch (err) { setError(err.message); } finally { setBusy(false); }
   }
 
-  setBusy(true);
-
-  try {
-
-    const left =
-      await saves.open(compareSelections[0]);
-
-    const right =
-      await saves.open(compareSelections[1]);
-
-    setComparisonData({
-      left,
-      right
-    });
-
-  } finally {
-
-    setBusy(false);
-
-  }
-
-}
-
-  console.log("APP compareSelections", compareSelections);
-  console.log("APP comparisonData", comparisonData);
-  console.log("comparisonData =", comparisonData);
   return (
     <div className="app-shell">
       <AppHeader view={view} setView={setView} savedCount={saved.length}/>
 
       <main>
-        {error && (
-          <div className="message error" role="alert">
-            {error}
-          </div>
-        )}
-        {notice && (
-          <div className="message success" role="status">
-            <Check size={16} />
-            {notice}
-          </div>
-        )}
+        {error && <div className="message error" role="alert">{error}</div>}
+        {notice && <div className="message success" role="status"><Check size={16} />{notice}</div>}
 
         {view === "builder" ? (
           <div className="planner-layout">
@@ -214,33 +158,18 @@ async function compareSelected() {
               index, setIndex, loadMore, termInfo, locked, pinSection, blocked: personal.events }}/>
           </div>
         ) : view === "credits" ? (
-  <Credits />
-
-) : comparisonData ? (
-  <ScheduleComparison
-    left={comparisonData.left}
-    right={comparisonData.right}
-    clearComparison={() => {
-      setComparisonData(null);
-      setCompareSelections([]);
-    }}
-  />
-)
-
- : (
-  <SavedSchedules
-  saved={saved}
-  busy={busy}
-  onOpen={openSaved}
-  onRemove={item => savedAction(() => saves.remove(item))}
-  onRename={(item, name) =>
-    savedAction(() => saves.rename(item, name))
-  }
-  compareSchedules={compareSelections}
-  setCompareSchedules={setCompareSelections}
-  onCompare={compareSelected}
-/>
-)}
+          <Credits/>
+        ) : comparisonData ? (
+          <ScheduleComparison left={comparisonData.left} right={comparisonData.right}
+            clearComparison={() => { setComparisonData(null); setCompareSelections([]); }}/>
+        ) : (
+          <SavedSchedules saved={saved} busy={busy} onOpen={openSaved}
+            onRemove={item => savedAction(() => saves.remove(item))}
+            onRename={(item, name) => savedAction(() => saves.rename(item, name))}
+            compareSchedules={compareSelections}
+            setCompareSchedules={setCompareSelections}
+            onCompare={compareSelected}/>
+        )}
       </main>
     </div>
   );
