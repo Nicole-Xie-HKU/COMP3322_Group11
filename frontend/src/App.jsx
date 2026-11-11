@@ -94,15 +94,17 @@ export default function App() {
     const next = { ...locked };
     if (section) next[code] = section;
     else delete next[code];
-    setLocked(next);
-    clearResults();
+    if (result) generate(next);
+    else setLocked(next);
   }
 
   async function generate(nextLocked = locked) {
     setBusy(true);
-    clearResults();
+    setError("");
+    setNotice("");
     try {
       setResult(await generateSchedules(term, courses, nextLocked, undefined, includeUnknownTimes, personal.events));
+      setIndex(0);
       setLocked(nextLocked);
       document
         .getElementById("schedule-panel")

@@ -119,7 +119,7 @@ export default function CourseSearch({ term, selected, onSelect, disabled }) {
             setOpen(true);
           }}
         >
-          <ChevronDown size={17} />
+          <ChevronDown size={18} />
         </button>
       </div>
       {open && (
