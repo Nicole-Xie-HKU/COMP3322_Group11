@@ -1,28 +1,38 @@
-# Docker and deployment
+# Deployment
 
-[Home](../README.md) · [Database handoff](database-handoff.md)
+Server: http://c3322-pg11.cs.hku.hk (HKUVPN required).
 
-## Local development
+## Start
 
-Use Node 24 for host commands. `npm run setup:env` creates random secrets with mode 0600 and refuses to overwrite an existing .env. For an existing main installation, keep database passwords, DB_NAME, DB_USER and Compose project/volume identity unchanged; add a random CURSOR_SECRET and the origins/administrator variables from .env.example. Never reuse the old backend-v2 volume with this main-compatible schema.
+From the repository root, with Docker and Compose installed:
 
 ```sh
-docker compose up -d mysql
-docker compose run --build --rm setup
-docker compose up --build -d app
+docker compose up -d --build
 docker compose ps
+docker compose exec -T app node backend/scripts/smoke.mjs
 ```
 
-Open http://localhost:3001. `app` contains the existing React production build and bounded Express service; `mysql` persists data in mysql_data. The one-off setup service alone receives admin credentials. The application runtime account is restricted to SELECT/INSERT/UPDATE/DELETE after setup. Back up existing MySQL before maintenance.
+No host Node.js, npm, MySQL or web server is required. Bootstrap creates random credentials in persistent Docker volumes. MySQL starts, setup applies additive migrations and imports the workbook, then the app serves React and the API on port 80. MySQL has no published port. HTTP is the server guide's Option B; the application uses HTTP-compatible settings with exact allowed origins, HttpOnly cookies and rate limits.
 
-If ports collide, set DB_PORT and PORT in .env. Set PUBLIC_ORIGIN/ALLOWED_ORIGINS to the corresponding browser origins too. HOST defaults to loopback for host development; Docker binds internally to 0.0.0.0 but publishes localhost by default. Vite proxy target must match a changed backend port.
+## Existing installation
 
-Stop with `docker compose stop`. Never use `down -v` as setup, upgrade or troubleshooting. Restarting app does not rerun the importer or change catalogue revision. Source updates use an explicit maintenance run.
+Keep the existing `.env`, database name/user/passwords and Compose project name. On the first upgrade, bootstrap uses the existing credentials. Subsequent starts reuse the secret volumes and reject conflicting supplied credentials. Keep `mysql_data`, `runtime_secrets` and `admin_secrets` together; never remove volumes to troubleshoot.
 
-## Course Linux VM (pending ITS details)
+For the school server, existing `.env` settings must use `APP_HOST=0.0.0.0`, `PORT=80`, `NODE_ENV=development`, and `PUBLIC_ORIGIN` / `ALLOWED_ORIGINS` set to `http://c3322-pg11.cs.hku.hk`. No secrets belong in Git or the submission ZIP.
 
-Install Docker/Compose, clone the exact tested commit, configure ignored secrets, back up any existing database, run setup and start services. Set NODE_ENV=production and exact HTTPS PUBLIC_ORIGIN/ALLOWED_ORIGINS, put the app behind a TLS reverse proxy, and set TRUST_PROXY=1 only for one trusted proxy. Add TRUST_PROXY to the app service environment if using that topology. Do not publicly expose MySQL.
+Setup preserves saved schedules. Reimporting refreshes catalogue data and invalidates existing pagination cursors. Back up the database before upgrading.
 
-Production refuses HTTP origins and sets Secure cookies. Local Compose deliberately defaults to development mode because localhost is HTTP; it still runs a production-built frontend. Inspect `/api/health/live` and `/api/health/ready`, test saves after restart and browser printing, and record the final public URL in README. Local containers do not establish public production readiness.
+```sh
+docker compose stop
+docker compose start mysql app
+```
 
-Schemas are checksum-versioned. Future changes require a new migration, not editing an applied SQL file. DDL cannot be rolled back as part of an import transaction.
+These stop/restart services without removing data. A fresh deployment or source update uses the start command above. Check `/api/health/ready`, course search, generation, pin/unpin and save/restore in the browser.
+
+## Local use
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+```
+
+Open http://localhost, or the `PORT` from an existing `.env`. The override permits local browser origins. Host-only development still requires Node.js 24 and separately configured MySQL access; it is not needed for deployment.
