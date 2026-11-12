@@ -54,8 +54,8 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       HOST: 0.0.0.0
       PORT: 3001
-      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://cs3322-pg11.cs.hku.hk}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://cs3322-pg11.cs.hku.hk}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://c3322-pg11.cs.hku.hk}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://c3322-pg11.cs.hku.hk}
       CURSOR_SECRET_FILE: /run/runtime-secrets/cursor_secret
       DB_HOST: mysql
       DB_PORT: 3306

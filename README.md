@@ -13,7 +13,7 @@ docker compose up -d --build
 docker compose ps
 ```
 
-Server: [http://cs3322-pg11.cs.hku.hk](http://cs3322-pg11.cs.hku.hk), accessible through HKUVPN. Docker generates persistent random secrets, initializes MySQL, imports the course workbook and starts the application. No host Node.js, npm or `.env` setup is required. Only the web port is published; MySQL stays on the Docker network.
+Server: [http://c3322-pg11.cs.hku.hk](http://c3322-pg11.cs.hku.hk), accessible through HKUVPN. Docker generates persistent random secrets, initializes MySQL, imports the course workbook and starts the application. No host Node.js, npm or `.env` setup is required. Only the web port is published; MySQL stays on the Docker network.
 
 For a fresh local installation, use the local override and open [http://localhost](http://localhost):
 

@@ -1,6 +1,6 @@
 # Deployment
 
-Server: http://cs3322-pg11.cs.hku.hk (HKUVPN required).
+Server: http://c3322-pg11.cs.hku.hk (HKUVPN required).
 
 ## Start
 
@@ -18,7 +18,7 @@ No host Node.js, npm, MySQL or web server is required. Bootstrap creates random 
 
 Keep the existing `.env`, database name/user/passwords and Compose project name. On the first upgrade, bootstrap uses the existing credentials. Subsequent starts reuse the secret volumes and reject conflicting supplied credentials. Keep `mysql_data`, `runtime_secrets` and `admin_secrets` together; never remove volumes to troubleshoot.
 
-For the school server, existing `.env` settings must use `APP_HOST=0.0.0.0`, `PORT=80`, `NODE_ENV=development`, and `PUBLIC_ORIGIN` / `ALLOWED_ORIGINS` set to `http://cs3322-pg11.cs.hku.hk`. No secrets belong in Git or the submission ZIP.
+For the school server, existing `.env` settings must use `APP_HOST=0.0.0.0`, `PORT=80`, `NODE_ENV=development`, and `PUBLIC_ORIGIN` / `ALLOWED_ORIGINS` set to `http://c3322-pg11.cs.hku.hk`. No secrets belong in Git or the submission ZIP.
 
 Setup preserves saved schedules. Reimporting refreshes catalogue data and invalidates existing pagination cursors. Back up the database before upgrading.
 
