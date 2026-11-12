@@ -1,54 +1,74 @@
 services:
+  bootstrap:
+    image: node:24-alpine
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-}
+      CURSOR_SECRET: ${CURSOR_SECRET:-}
+    command: ["node", "/bootstrap-secrets.cjs"]
+    volumes:
+      - ./docker/bootstrap-secrets.cjs:/bootstrap-secrets.cjs:ro
+      - runtime_secrets:/run/runtime-secrets
+      - admin_secrets:/run/admin-secrets
   mysql:
     image: mysql:8.0
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Run npm run setup:env}
+      MYSQL_ROOT_PASSWORD_FILE: /run/admin-secrets/mysql_root_password
       MYSQL_DATABASE: ${DB_NAME:-hkuplanner}
       MYSQL_USER: ${DB_USER:-hkuplanner}
-      MYSQL_PASSWORD: ${DB_PASSWORD:?Run npm run setup:env}
-    ports:
-      - "127.0.0.1:${DB_PORT:-3307}:3306"
+      MYSQL_PASSWORD_FILE: /run/runtime-secrets/db_password
     volumes:
       - mysql_data:/var/lib/mysql
+      - runtime_secrets:/run/runtime-secrets:ro
+      - admin_secrets:/run/admin-secrets:ro
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD-SHELL", "MYSQL_PWD=$$MYSQL_ROOT_PASSWORD mysqladmin ping -h localhost -u root --silent"]
+      test: ["CMD-SHELL", "MYSQL_PWD=$$(cat /run/admin-secrets/mysql_root_password) mysqladmin ping -h 127.0.0.1 -u root --silent"]
       interval: 5s
       timeout: 5s
       retries: 30
   setup:
     build: .
-    profiles: [tools]
     environment:
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-hkuplanner}
       DB_USER: ${DB_USER:-hkuplanner}
-      DB_PASSWORD: ${DB_PASSWORD:?Run npm run setup:env}
+      DB_PASSWORD_FILE: /run/runtime-secrets/db_password
       DB_ADMIN_USER: root
-      DB_ADMIN_PASSWORD: ${MYSQL_ROOT_PASSWORD:?Run npm run setup:env}
+      DB_ADMIN_PASSWORD_FILE: /run/admin-secrets/mysql_root_password
+    volumes:
+      - runtime_secrets:/run/runtime-secrets:ro
+      - admin_secrets:/run/admin-secrets:ro
     command: ["node", "backend/database/setupDatabase.js"]
     depends_on:
       mysql:
         condition: service_healthy
   app:
     build: .
+    restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       HOST: 0.0.0.0
       PORT: 3001
-      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://localhost:3001}
-      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:5173,http://127.0.0.1:3001,http://127.0.0.1:5173}
-      CURSOR_SECRET: ${CURSOR_SECRET:?Run npm run setup:env}
+      PUBLIC_ORIGIN: ${PUBLIC_ORIGIN:-http://cs3322-pg11.cs.hku.hk}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://cs3322-pg11.cs.hku.hk}
+      CURSOR_SECRET_FILE: /run/runtime-secrets/cursor_secret
       DB_HOST: mysql
       DB_PORT: 3306
       DB_NAME: ${DB_NAME:-hkuplanner}
       DB_USER: ${DB_USER:-hkuplanner}
-      DB_PASSWORD: ${DB_PASSWORD:?Run npm run setup:env}
+      DB_PASSWORD_FILE: /run/runtime-secrets/db_password
+    volumes:
+      - runtime_secrets:/run/runtime-secrets:ro
     ports:
-      - "${APP_HOST:-127.0.0.1}:${PORT:-3001}:3001"
+      - "${APP_HOST:-0.0.0.0}:${PORT:-80}:3001"
     depends_on:
-      mysql:
-        condition: service_healthy
+      setup:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 15s
@@ -56,3 +76,5 @@ services:
       retries: 3
 volumes:
   mysql_data:
+  runtime_secrets:
+  admin_secrets:

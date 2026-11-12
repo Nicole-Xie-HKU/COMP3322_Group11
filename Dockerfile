@@ -13,8 +13,10 @@ RUN npm --prefix backend ci --omit=dev
 COPY backend backend
 COPY Database Database
 COPY scheduler scheduler
+COPY docker docker
 COPY --from=build /app/frontend/dist frontend/dist
 USER node
 ENV HOST=0.0.0.0 PORT=3001
 EXPOSE 3001
+ENTRYPOINT ["/bin/sh", "/app/docker/with-secrets.sh"]
 CMD ["node", "backend/server.js"]

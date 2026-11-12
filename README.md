@@ -2,32 +2,34 @@
 
 A React, Express and MySQL course timetable planner using the supplied HKU 2026–27 snapshot.
 
-## First local setup
+## Run
 
 For a ZIP submission, select `main` on GitHub and use **Code → Download ZIP**. Extract the complete archive, including hidden configuration templates, then open a terminal in the extracted folder containing this README and `package.json`. Git is not required to launch it. Avoid `%` in the extraction path: Docker Compose 5.5.1 rejects it; spaces are supported. Initial dependency/image downloads require internet access. Submit the original downloaded ZIP, not a working folder containing generated `.env` secrets.
 
-Use **Node.js 24** and Docker Desktop with Compose. Run these commands from the repository root:
+Install Docker with Compose. From the repository root:
 
 ```sh
-npm run setup:env
-# Creates an ignored .env with random secrets; refuses to overwrite an existing file.
-docker compose up -d mysql
-docker compose run --build --rm setup
-docker compose up --build -d app
+docker compose up -d --build
 docker compose ps
 ```
 
-Open [HKUPlan](http://localhost:3001). The explicit one-off `setup` command applies additive migrations and imports the workbook. Starting `app` alone does not initialize the database. Do not simply copy the placeholder credentials from `.env.example`.
+Server: [http://cs3322-pg11.cs.hku.hk](http://cs3322-pg11.cs.hku.hk), accessible through HKUVPN. Docker generates persistent random secrets, initializes MySQL, imports the course workbook and starts the application. No host Node.js, npm or `.env` setup is required. Only the web port is published; MySQL stays on the Docker network.
 
-**Existing installation:** keep the existing `.env`, database passwords, database name/user and Compose project/volume identity. Back up MySQL before maintenance. Add missing settings from `.env.example`, including a random 32-or-more-character `CURSOR_SECRET`; do not regenerate credentials for an existing volume. See [deployment](backend/docs/deployment.md). Never use `docker compose down -v` to troubleshoot.
+For a fresh local installation, use the local override and open [http://localhost](http://localhost):
 
-Port defaults are 3001 for the app and 3307 for loopback MySQL. If changing `PORT`, also change `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS` to match the browser URL. Keep the database private.
+```sh
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+```
+
+**Existing installation:** keep the existing `.env`, database passwords, database name/user and Compose project/volume identity. Existing credentials are imported into the secret volumes on first startup. Keep all three named volumes; do not use `docker compose down -v`. See [deployment](backend/docs/deployment.md).
+
+The default web port is 80. Existing `.env` settings override defaults; set `APP_HOST=0.0.0.0`, `PORT=80` and both origin settings to the server URL when upgrading a local configuration for the school server.
 
 ## Development and checks
 
 ```sh
 npm run setup                 # Install both packages from their lockfiles
-npm run dev:api               # Host backend; requires local MySQL/setup above
+npm run dev:api               # Host backend; requires separate MySQL configuration
 npm run dev                   # Vite at http://localhost:5173 (use a second terminal)
 npm test                      # Required backend and scheduler suites; missing suites fail
 npm run test:mysql            # Creates/removes its own temporary test database
@@ -37,9 +39,9 @@ npm run check
 docker compose stop           # Stop services without deleting saved data
 ```
 
-Do not run the host backend and Docker app on the same port. Set `TEST_URL` for a non-default integration-test URL; adjust the Vite proxy if changing the backend port.
+Host development commands require Node.js 24 and separately configured database access. Set `TEST_URL` for a non-default integration-test URL; adjust the Vite proxy if changing the backend port.
 
-To switch from Docker to host development, run `docker compose stop app` first; keep `mysql` running. `npm start` is the non-watch backend alternative to `npm run dev:api`.
+Docker intentionally does not publish MySQL to the host. `npm start` is the non-watch backend alternative to `npm run dev:api`.
 
 ## Unknown-time policy
 
