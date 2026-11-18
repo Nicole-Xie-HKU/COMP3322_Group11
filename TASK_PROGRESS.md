@@ -4,11 +4,13 @@
 
 Use the root [README](README.md) for a fresh Git clone or GitHub ZIP. The default Docker app URL is http://localhost:3001. Git metadata and any earlier developer's local containers are not required. Preserve existing database credentials and volumes when updating an installation.
 
-## 2026-11-18 — Campus map (local working tree)
+## 2026-11-18 — Campus map integration
 
-Added the English campus map and advisory weekly transfers without changing scheduler decisions. All 22 listed buildings support every pair, including direct CYM–CYCP/CYPP routes. The UI uses ordinary walking-route styling without source badges or a coverage banner. Based on main `205fdb8`; local-only changes. See [feature](backend/docs/features/campus-map.md), [initial verification](backend/docs/task-progress/2026-11-18-campus-map.md), [coverage expansion](backend/docs/task-progress/2026-11-18-campus-coverage.md), [direct connections](backend/docs/task-progress/2026-11-18-campus-connections.md), and [presentation update](backend/docs/task-progress/2026-11-18-campus-presentation.md).
+Added the English campus map and advisory weekly transfers without changing scheduler decisions. All 22 listed buildings support every pair, including direct CYM–CYCP/CYPP routes. The UI uses ordinary walking-route styling without source badges or a coverage banner. Integrated main `90d0801`, preserving course descriptions and app-shell fixes. See [feature](backend/docs/features/campus-map.md), [initial verification](backend/docs/task-progress/2026-11-18-campus-map.md), [coverage expansion](backend/docs/task-progress/2026-11-18-campus-coverage.md), [direct connections](backend/docs/task-progress/2026-11-18-campus-connections.md), and [presentation update](backend/docs/task-progress/2026-11-18-campus-presentation.md).
 
 Campus Map now uses the existing schedule UI's surfaces and controls; see [style matching](backend/docs/task-progress/2026-11-18-campus-style.md).
+
+Merged verification: 108 tests, six real HTTP tests, fresh Linux amd64 Docker setup, guest saves and desktop/mobile checks passed. See [release checks and limits](backend/docs/task-progress/2026-11-18-campus-release.md).
 
 ## 2026-10-08 — Launch and ZIP portability repairs
 
