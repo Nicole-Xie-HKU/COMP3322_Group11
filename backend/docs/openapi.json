@@ -2158,6 +2158,26 @@
           "creditsKnown": {
             "type": "boolean"
           },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionKind": {
+            "type": "string",
+            "nullable": true
+          },
+          "prerequisites": {
+            "type": "string",
+            "nullable": true
+          },
+          "assessment": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionSource": {
+            "type": "string",
+            "nullable": true
+          },
           "sections": {
             "type": "array",
             "items": {
@@ -2172,6 +2192,11 @@
           "career",
           "credits",
           "creditsKnown",
+          "description",
+          "descriptionKind",
+          "prerequisites",
+          "assessment",
+          "descriptionSource",
           "sections"
         ],
         "additionalProperties": false

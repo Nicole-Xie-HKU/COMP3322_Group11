@@ -96,6 +96,30 @@ export default function CourseCard({
               onAdd={custom.full ? undefined : custom.add} onRemove={custom.remove} />
           </div>
         )}
+        {course.description && (
+          <details className="course-about">
+            <summary>
+              {course.descriptionKind === "topics" ? "Syllabus topics"
+                : course.descriptionKind === "title" ? "Course summary" : "About this course"}
+            </summary>
+            <p className="course-description">{course.description}</p>
+            {course.descriptionKind === "title" && (
+              <p className="course-generated">Built from the catalogue title only; no official description is available.</p>
+            )}
+            {(course.credits != null || course.assessment) && (
+              <p className="course-meta">
+                {course.credits != null && <span>{course.credits} credits</span>}
+                {course.assessment && <span>Assessment: {course.assessment}</span>}
+              </p>
+            )}
+            {course.prerequisites && <p className="course-prerequisite">Prerequisites: {course.prerequisites}</p>}
+            {course.descriptionSource && (
+              <p className="course-source">
+                <a href={course.descriptionSource} target="_blank" rel="noreferrer">HKU course catalogue</a>
+              </p>
+            )}
+          </details>
+        )}
       </div>
     </article>
   );
