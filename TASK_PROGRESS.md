@@ -4,6 +4,12 @@
 
 Use the root [README](README.md) for a fresh Git clone or GitHub ZIP. The default Docker app URL is http://localhost:3001. Git metadata and any earlier developer's local containers are not required. Preserve existing database credentials and volumes when updating an installation.
 
+## 2026-11-18 — Campus map (local working tree)
+
+Added the English campus map and advisory weekly transfers without changing scheduler decisions. All 22 listed buildings support every pair, including direct CYM–CYCP/CYPP routes. The UI uses ordinary walking-route styling without source badges or a coverage banner. Based on main `205fdb8`; local-only changes. See [feature](backend/docs/features/campus-map.md), [initial verification](backend/docs/task-progress/2026-11-18-campus-map.md), [coverage expansion](backend/docs/task-progress/2026-11-18-campus-coverage.md), [direct connections](backend/docs/task-progress/2026-11-18-campus-connections.md), and [presentation update](backend/docs/task-progress/2026-11-18-campus-presentation.md).
+
+Campus Map now uses the existing schedule UI's surfaces and controls; see [style matching](backend/docs/task-progress/2026-11-18-campus-style.md).
+
 ## 2026-10-08 — Launch and ZIP portability repairs
 
 The user authorized fixing the launch-audit findings, testing and pushing. This repair is based on main `3647daf7f82ad654d0dacb910aeeafcaf9fa7e12`.

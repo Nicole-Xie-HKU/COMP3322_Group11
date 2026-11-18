@@ -12,6 +12,7 @@ import PlannerSelection from "./components/PlannerSelection";
 import ScheduleResults from "./components/ScheduleResults";
 import { meetingCompleteness, hasImpossibleMeetingDates } from "../../scheduler/scheduler";
 import ScheduleComparison from "./components/ScheduleComparison";
+import CampusMapView from "./components/CampusMapView";
 
 export default function App() {
   const [terms, setTerms] = useState([]);
@@ -25,6 +26,11 @@ export default function App() {
   const [notice, setNotice] = useState("");
   const [includeUnknownTimes, setIncludeUnknownTimes] = useState(false);
   const [view, setView] = useState("builder");
+  const [routeRequest, setRouteRequest] = useState(null);
+  function openRoute(transfer) {
+    setRouteRequest({ fromVenue: transfer.fromVenue, toVenue: transfer.toVenue });
+    setView("map");
+  }
   const [compareSelections, setCompareSelections] = useState([]);
   const [comparisonData, setComparisonData] = useState(null);
   const saves = useSavedSchedules(setError);
@@ -201,8 +207,7 @@ async function compareSelected() {
           </div>
         )}
 
-        {view === "builder" ? (
-          <div className="planner-layout">
+          <div className="planner-layout" hidden={view !== "builder"}>
             <nav className="planner-jumps" aria-label="Planner sections">
               <a href="#course-selection">Courses</a>
               <a href="#schedule-panel">Timetable</a>
@@ -211,9 +216,11 @@ async function compareSelected() {
               changeTerm, addCourse, lockSection, pinSection, removeCourse, generate,
               includeUnknownTimes, setIncludeUnknownTimes, clearResults, personal }}/>
             <ScheduleResults {...{ schedule, alreadySaved, busy, saves, saveSchedule, result,
-              index, setIndex, loadMore, termInfo, locked, pinSection, blocked: personal.events }}/>
+              index, setIndex, loadMore, termInfo, locked, pinSection, blocked: personal.events,
+              onOpenRoute: openRoute, isVisible: view === "builder" }}/>
           </div>
-        ) : view === "credits" ? (
+        {view === "map" ? <CampusMapView request={routeRequest} onBack={() => setView("builder")}/> :
+          view === "builder" ? null : view === "credits" ? (
   <Credits />
 
 ) : comparisonData ? (

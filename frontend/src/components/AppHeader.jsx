@@ -29,6 +29,8 @@ export default function AppHeader({ view, setView, savedCount }) {
           >
             SAVED SCHEDULES ({savedCount})
           </button>
+          <button className={view === "map" ? "active" : ""}
+            aria-current={view === "map" ? "page" : undefined} onClick={() => setView("map")}>CAMPUS MAP</button>
           <button className={view === "credits" ? "active" : ""} onClick={()=>setView("credits")}>CREDITS</button>
         </div>
       </nav>

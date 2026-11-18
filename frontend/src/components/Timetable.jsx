@@ -4,8 +4,9 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import { ChevronLeft, ChevronRight, Pin } from "lucide-react";
 import { toFullCalendarEvents, toPrintRows } from "../../../scheduler/export";
 import WeeklyCoverage from "./WeeklyCoverage";
+import TransferPanel from "../campus/components/TransferPanel";
 
-export default function Timetable({ schedule, term, locked, blocked = [], onPin, busy }) {
+export default function Timetable({ schedule, term, locked, blocked = [], onPin, busy, onOpenRoute, isVisible }) {
   const calendar = useRef(null);
   const [weekTitle, setWeekTitle] = useState("");
   const [range, setRange] = useState(null);
@@ -38,6 +39,12 @@ export default function Timetable({ schedule, term, locked, blocked = [], onPin,
   useEffect(() => {
     calendar.current?.getApi().gotoDate(startDate);
   }, [startDate]);
+  useEffect(() => {
+    if (isVisible) {
+      const frame = requestAnimationFrame(() => calendar.current?.getApi().updateSize());
+      return () => cancelAnimationFrame(frame);
+    }
+  }, [isVisible]);
 
   return (
     <>
@@ -140,6 +147,7 @@ export default function Timetable({ schedule, term, locked, blocked = [], onPin,
           }}
         />
       </div>
+      <TransferPanel schedule={schedule} range={range} term={term} onOpenRoute={onOpenRoute}/>
       {schedule && (
         <table className="print-details">
           <caption>Course details</caption>

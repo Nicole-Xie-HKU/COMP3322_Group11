@@ -2,6 +2,8 @@
 
 A React, Express and MySQL course timetable planner using the supplied HKU 2026–27 snapshot.
 
+The **Campus Map** view adds local HKU walking routes and advisory between-class estimates. See [coverage and use](backend/docs/features/campus-map.md).
+
 ## Run
 
 For a ZIP submission, select `main` on GitHub and use **Code → Download ZIP**. Extract the complete archive, including hidden configuration templates, then open a terminal in the extracted folder containing this README and `package.json`. Git is not required to launch it. Avoid `%` in the extraction path: Docker Compose 5.5.1 rejects it; spaces are supported. Initial dependency/image downloads require internet access. Submit the original downloaded ZIP, not a working folder containing generated `.env` secrets.

@@ -6,7 +6,7 @@ import { scheduleTags } from "../../../scheduler/scheduler";
 import { useCalendarExport } from "../hooks/useCalendarExport";
 
 export default function ScheduleResults({ schedule, alreadySaved, busy, saves, saveSchedule, result,
-  index, setIndex, loadMore, termInfo, locked, pinSection, blocked = [] }) {
+  index, setIndex, loadMore, termInfo, locked, pinSection, blocked = [], onOpenRoute, isVisible }) {
   const { exportCalendar, exportStatus } = useCalendarExport();
   const tags = schedule ? scheduleTags(schedule, { blocked }) : [];
   return (
@@ -116,6 +116,8 @@ export default function ScheduleResults({ schedule, alreadySaved, busy, saves, s
         blocked={blocked}
         onPin={pinSection}
         busy={busy}
+        onOpenRoute={onOpenRoute}
+        isVisible={isVisible}
       />
       <div className="calendar-footer">
         <span>

@@ -1,0 +1,42 @@
+import { nearbyApproaches } from './approaches.js';
+
+// Keep exact mapped access separate from reviewed nearby approaches: neither implies room-level access.
+const registry = [
+  { id: 'MB', name: 'Main Building', osm: 'relation/2424275', prefixes: ['MB'],
+    access: ['1923658181'], approach: 'South entrance via the Library Extension footbridge' },
+  { id: 'KK', name: 'K.K. Leung Building', osm: 'way/182023173', prefixes: ['KKLG', 'KK'],
+    access: ['1923658004', '4525548861'], approach: 'Mapped west or south entrance' },
+  { id: 'KB', name: 'Knowles Building', osm: 'way/182023171', prefixes: ['KB'],
+    access: ['6580279810', '6580279811'], approach: 'Mapped north or east building walkway' },
+  { id: 'CPD', name: 'Central Podium Levels', osm: 'way/534044190', prefixes: ['CPD'],
+    access: ['7131204337', '9036874348', '7131204339'], approach: 'Central Podium mapped walkway; find your room inside' },
+  { id: 'LE', name: 'Library Extension', osm: 'way/182023179', prefixes: ['LE'],
+    access: ['6505344812', '4524783054'], approach: 'Mapped west entrance or Main Building footbridge' },
+  { id: 'MW', name: 'Meng Wah Complex', osm: 'way/390554535', prefixes: ['MWT', 'MW'],
+    access: ['6563915346'], approach: 'West entrance from the campus service road' },
+  { id: 'HW', name: 'Haking Wong Building', osm: 'way/182172769', prefixes: ['HWLG', 'HW'],
+    access: ['5180133890'], approach: 'Mapped east entrance on University Street' },
+  { id: 'CYC', name: 'Chong Yuet Ming Chemistry Building', osm: 'way/182208619', prefixes: ['CYCP', 'CYC'],
+    access: ['6580279800'], approach: 'Yuet Ming Plaza entrance' },
+  { id: 'CYP', name: 'Chong Yuet Ming Physics Building', osm: 'way/182208628', prefixes: ['CYPP', 'CYP'],
+    access: ['6580279797'], approach: 'Covered walkway entrance from CYM' },
+  { id: 'CYM', name: 'Chong Yuet Ming Amenities / Cultural Centre', osm: 'way/182203652', prefixes: ['CYCC', 'CYM'],
+    access: ['4525548835', '4525548836', '6580279796'], approach: 'Mapped west entrances or east covered walkway toward CYCP/CYPP' },
+  { id: 'CB', name: 'Chow Yei Ching Building', osm: 'way/182172764', prefixes: ['CBLG', 'CB'], exact: ['CBA', 'CBC'],
+    access: [], approach: 'The mapped service-road connection lacks pedestrian access evidence' },
+  { id: 'EH', name: 'Eliot Hall', osm: 'way/182208614', prefixes: ['EH'],
+    access: [] },
+  { id: 'RHT', name: 'Rayson Huang Theatre', osm: 'way/182203643', exact: ['RHT'], access: [] },
+  { id: 'JL', name: 'James Hsioung Lee Science Building', osm: 'way/182203625', prefixes: ['JL'], access: [] },
+  { id: 'TT', name: 'T.T. Tsui Building', osm: 'way/182208630', prefixes: ['TT'],
+    access: ['6563915326'], approach: 'Mapped northwest entrance' },
+  { id: 'RM', name: 'Runme Shaw Building', osm: 'way/182203609', prefixes: ['RM'], access: [] },
+  { id: 'RR', name: 'Run Run Shaw Building', osm: 'way/182203618', prefixes: ['RR'], access: [] },
+  { id: 'GH', name: 'Graduate House', osm: 'way/182203620', prefixes: ['GH'], exact: ['WLGH'], access: [] },
+  { id: 'KBS', name: 'Kadoorie Biological Sciences Building', osm: 'way/182024491', access: [] },
+  { id: 'CYT', name: 'Cheng Yu Tung Tower', osm: 'way/315571042', access: [] },
+  { id: 'JCT', name: 'The Jockey Club Tower', osm: 'way/315571039', access: [] },
+  { id: 'RRS', name: 'Run Run Shaw Tower', osm: 'way/315571046', access: [] },
+];
+
+export const places = registry.map(place => ({ ...place, nearbyApproach: nearbyApproaches[place.id] }));
