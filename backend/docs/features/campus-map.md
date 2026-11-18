@@ -15,8 +15,8 @@ The map shares Build Schedule/Saved Schedules styling: gray surfaces, existing s
 - Solid green lines show walking routes, including the CYM connections; orange dashes identify mapped stairs. The legend does not distinguish route sources. Distance sums modeled path segments, not straight-line distance between building centers, and is labeled **meters estimated**.
 - Walking time is `max(4, ceil(distanceMeters / 75 + 2))` minutes: 75 meters/minute plus a two-minute planning buffer. These are planning assumptions, not measured travel times.
 - Different rooms in one building receive a three-minute estimate without an invented indoor line. An identical normalized room needs no transfer entry.
-- A warning appears only when estimated minutes exceed the actual gap. Equal time is not marked tight.
-- Mapped access is preferred. Where it is disconnected or absent, a reviewed **nearby approach** on an existing path is used. The UI flags the unmapped entrance/floor connection; its distance is not invented or included.
+- Walking time and class gaps remain visible without advisory notices or tight-gap warnings. The internal gap comparison is unchanged.
+- Mapped access is preferred. Where it is disconnected or absent, a reviewed **nearby approach** on an existing path is used. Its badge and endpoint details remain, but explanatory notices are hidden; unmapped distance is not invented or included.
 - Podium buildings can share one approach. These show a three-minute planning estimate and a shared marker, not a fabricated line. Unknown or unsupported venue names still show **Route unavailable**.
 
 ## Coverage and limits

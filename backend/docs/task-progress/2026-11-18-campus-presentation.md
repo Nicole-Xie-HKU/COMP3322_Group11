@@ -17,3 +17,11 @@ Used and closed a separate Chrome QA tab to avoid reloading the user's existing 
 Evidence: `/Users/icycrucifix/Desktop/HKU/COMP/COMP3322/Project/campus-map-evidence-2026-11-18/presentation.md`.
 
 Status: complete and live at http://localhost:13601/. Refresh the existing page to load the simplified display.
+
+## Notice-only update
+
+The user clarified that only notices should be removed, without deleting other pathfinder elements. Removed standalone route caveats/time-buffer text and advisory transfer paragraphs, including the tight-gap warning/highlight. Controls, metrics, endpoint details, badges, map, coverage disclosure, styling and attribution remain. Loading, unavailable-route and actual load-error states still work. Only `RouteSummary.jsx` and `TransferPanel.jsx` executable code changed; algorithms, geometry, estimates, backend and course descriptions are unchanged.
+
+Baseline/final tests passed 108/108; host and app-only Docker builds passed. Render checks covered normal/shared routes, retained details/badges, unavailable/load-error states and a tight nearby transfer without notices. Chrome reproduced MB→CB at 354 m / 7 min without the quoted notice or footnote; badges and coverage remain. Unknown venues still show Route unavailable; no captured console warnings/errors. MySQL identity/start time stayed unchanged. The existing source-hash/CSS budget failures and build chunk warnings remain outside scope.
+
+Evidence: `/Users/icycrucifix/Desktop/HKU/COMP/COMP3322/Project/campus-map-notices-evidence-2026-11-18/`. This supersedes the earlier statement that general time/access notices remain visible.

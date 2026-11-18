@@ -10,6 +10,8 @@ Added the English campus map and advisory weekly transfers without changing sche
 
 Campus Map now uses the existing schedule UI's surfaces and controls; see [style matching](backend/docs/task-progress/2026-11-18-campus-style.md).
 
+Advisory route/transfer notices are hidden; controls, details, badges and coverage remain. See the [notice-only update](backend/docs/task-progress/2026-11-18-campus-presentation.md#notice-only-update).
+
 Merged verification: 108 tests, six real HTTP tests, fresh Linux amd64 Docker setup, guest saves and desktop/mobile checks passed. See [release checks and limits](backend/docs/task-progress/2026-11-18-campus-release.md).
 
 ## 2026-10-08 — Launch and ZIP portability repairs

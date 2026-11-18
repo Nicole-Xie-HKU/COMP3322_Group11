@@ -19,17 +19,13 @@ export default function TransferPanel({ schedule, range, term, onOpenRoute }) {
   const current = result?.schedule === schedule && result?.range === range ? result : null;
   return <section className="campus-transfers" aria-label="Between classes">
     <h3>Between classes <span>Displayed week</span></h3>
-    <p className="campus-muted">Walking estimates are advisory and do not change generated schedules.</p>
     {error ? <p role="alert">{error} <button className="text-button" onClick={() => setAttempt(value => value + 1)}>Retry</button></p> :
       !current ? <p role="status">Checking this week’s transfers…</p> : current.notice ? <p>{current.notice}</p> :
       !current.transfers.length ? <p>No consecutive room changes to show this week.</p> :
-      <ul>{current.transfers.map(transfer => <li key={transfer.id} className={transfer.tight ? 'campus-transfer-tight' : ''}>
+      <ul>{current.transfers.map(transfer => <li key={transfer.id}>
         <div><strong>{days[transfer.day]} {transfer.date.slice(5)} · {transfer.fromVenue} → {transfer.toVenue}</strong>
           <span>{transfer.fromCourse} → {transfer.toCourse} · {timeLabel(transfer.endTime)}–{timeLabel(transfer.startTime)}</span>
           <span>{transfer.route.minutes === null ? 'Route unavailable' : `${transfer.route.minutes} min estimated walk`} · {transfer.gap} min gap</span>
-          {transfer.tight && <b>May not leave enough walking time</b>}
-          {transfer.route.usesNearbyApproach && <span>Nearby approach; allow extra time for the unmapped entrance/floor connection.</span>}
-          {transfer.route.status === 'shared-approach' && <span>Shared campus approach; follow building/floor signs.</span>}
           {transfer.route.status === 'unavailable' && <span>{transfer.route.reason}</span>}</div>
         <button className="secondary-button campus-secondary" onClick={() => onOpenRoute(transfer)}>
           {transfer.route.status === 'unavailable' ? 'Check map' : 'View route'}</button>

@@ -18,10 +18,6 @@ export default function RouteSummary({ route, busy, error }) {
         <li><strong>{route.from.name}</strong><span>{route.fromEndpoint.description}</span></li>
         <li><strong>{route.to.name}</strong><span>{route.toEndpoint.description}</span></li>
       </ol>
-      {route.status === 'shared-approach' && <p>{route.reason}</p>}
-      {route.usesNearbyApproach && <p className="campus-warning">A nearby approach is not a confirmed entrance. The final entrance or floor connection is not mapped and is excluded from the distance. Follow campus signs.</p>}
-      <p className="campus-muted">{route.status === 'routed' && 'Time includes a 2-minute planning buffer. '}Indoor room access, lift waits, slopes, and closures can add time.</p>
     </> : <p>{route.reason}</p>}
-    {route.status === 'unavailable' && <p className="campus-muted">The building may be shown on the map even when its walking connection is missing. No straight-line substitute is used.</p>}
   </div>;
 }
