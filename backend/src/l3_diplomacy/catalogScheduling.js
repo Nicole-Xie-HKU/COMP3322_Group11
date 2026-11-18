@@ -1,5 +1,6 @@
 const { ApiError } = require('../l0_axioms/errors');
 const { fingerprint } = require('../l1_building_blocks/cursors');
+const { courseDescription } = require('../l1_building_blocks/descriptions');
 function createCatalogScheduling(db, scheduler, worker, cursors, config) {
   async function load(term,codes) {
     const loaded = await db.getCoursesForScheduling(term,codes);
@@ -8,7 +9,12 @@ function createCatalogScheduling(db, scheduler, worker, cursors, config) {
     if (scheduler.validateCourses(loaded.courses,term).length) throw new ApiError(500,'CATALOG_INVALID','Catalogue data needs correction before scheduling.');
     return loaded;
   }
-  async function details(code,term) { return (await load(term,[code])).courses[0]; }
+  // Description text comes from a local snapshot, never from a live third-party request.
+  async function details(code,term) {
+    const course = (await load(term,[code])).courses[0], extra = courseDescription(code) ?? {};
+    return { ...course, description: extra.description ?? null, descriptionKind: extra.descriptionKind ?? null,
+      prerequisites: extra.prerequisites ?? null, assessment: extra.assessment ?? null, descriptionSource: extra.source ?? null };
+  }
   async function resolveSelection(input, requireComplete = false) {
     const codes = [...new Set(input.sectionKeys.map(key => key.split(':')[0]))];
     if (codes.length > 12) throw new ApiError(400,'TOO_MANY_COURSES','Select at most 12 courses.');

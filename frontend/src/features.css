@@ -239,6 +239,44 @@
   background: rgba(255, 255, 255, 0.6);
 }
 
+.course-about {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #454545;
+}
+.course-about summary {
+  cursor: pointer;
+  color: #345f7a;
+  font-size: 12px;
+}
+.course-description {
+  margin: 6px 0 4px;
+  line-height: 1.5;
+}
+.course-prerequisite {
+  margin: 0;
+  font-size: 11px;
+  color: #6b6b6b;
+}
+.course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: #454545;
+}
+.course-source {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: #6b6b6b;
+}
+.course-generated {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: #8a5a13;
+}
+
 @media screen and (max-width: 960px), screen and (pointer: coarse) {
   .event-form input:not([type="checkbox"]),
   .event-form select,

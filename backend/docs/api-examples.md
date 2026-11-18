@@ -15,6 +15,8 @@ Content-Type: application/json
 
 A generated response contains `schedules`, `total`, `returnedCount`, `searchComplete`, `totalExact`, `truncated`, `nextCursor`, `eventImpact`, and `warnings`. Each schedule has a stable selection ID, section details, `fullyVerified`, and `unknownSectionKeys`. Unknown-time sections are excluded unless the request sets `includeUnknownTimes:true`; opted-in incomplete results must be displayed as provisional, not fully verified. `credits` and `totalCredits` are null unless known, not guessed.
 
+Course detail also returns `description`, `descriptionKind` (`calendar`, `topics` or `title`), `prerequisites`, `assessment` and `descriptionSource`. A `title` kind means no official text exists and the sentence only restates the catalogue title; label it as such instead of presenting it as a catalogue entry.
+
 Personal events go in the same request. They repeat weekly (`day`) or happen once (`date`); `hard:false` only lowers a score. Their stored ids are not sent.
 
 ```http

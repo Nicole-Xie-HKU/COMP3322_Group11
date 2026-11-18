@@ -15,7 +15,9 @@ schemas.TbaMeeting=object({startDate:nullable(date),endDate:nullable(date),venue
 schemas.Section=object({id:string,type:{type:'string',enum:['CLASS','LEC','TUT','LAB','SEM','OTH']},parent:nullable(string),classNumber:nullable(integer),
   instructor:nullable(string),instructors:array(string),campus:nullable(string),seatsLeft:nullable(integer),
   waitlist:nullable(object({open:boolean,count:nullable(integer)})),meetings:array(ref('Meeting')),tba:array(ref('TbaMeeting'))});
-schemas.Course=object({code:string,title:string,dept:nullable(string),career:nullable(string),credits:nullable(number),creditsKnown:boolean,sections:array(ref('Section'))});
+schemas.Course=object({code:string,title:string,dept:nullable(string),career:nullable(string),credits:nullable(number),creditsKnown:boolean,
+  description:nullable(string),descriptionKind:nullable(string),prerequisites:nullable(string),assessment:nullable(string),
+  descriptionSource:nullable(string),sections:array(ref('Section'))});
 schemas.CourseSummary=object({code:string,title:string,dept:nullable(string),career:nullable(string),credits:nullable(number),sectionCount:integer});
 schemas.SelectedSection=object({...schemas.Section.properties,courseCode:string,courseTitle:string,credits:nullable(number),creditsKnown:boolean,
   seat:{type:'string',enum:['unknown','open','waitlist','full']},alternatives:array(string)},[...schemas.Section.required,'courseCode','courseTitle','credits','seat','alternatives']);
