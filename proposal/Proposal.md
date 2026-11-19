@@ -175,19 +175,13 @@ The primary target users are current HKU undergraduate and postgraduate students
 
 2\. HIGH-LEVEL WORKFLOW DESCRIPTION:
 
-&#x09;1. Landing Page:
-
-&#x09;- User opens HKU Schedule Builder.
-
-&#x09;- User is presented with information about the system and options to log in or continue as a guest.
-
-&#x09;2. Course Selection Page:
+&#x09;1. Course Selection Page:
 
 &#x09;- User searches for courses using course codes or course names.
 
 &#x09;- User adds desired courses to a planning list.
 
-&#x09;3. Schedule Generation and Timetable View:
+&#x09;2. Schedule Generation and Timetable View:
 
 &#x09;- The system evaluates available lecture, tutorial and laboratory sections.
 
@@ -197,7 +191,7 @@ The primary target users are current HKU undergraduate and postgraduate students
 
 &#x09;- Classes are displayed as colored blocks on the timetable. 
 
-&#x09;4. (If we get to Nice-to-have features) Save and Manage Schedules:
+&#x09;3. (If we get to Nice-to-have features) Save and Manage Schedules:
 
 &#x09;- Logged-in users can save preferred schedules.
 
