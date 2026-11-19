@@ -1,52 +1,30 @@
-# HKUPlan — Group 11
+# HKUPlan — COMP3322 Group 11
 
-A React, Express and MySQL course timetable planner using the supplied HKU 2026–27 snapshot.
+HKUPlan lets students build a timetable, save schedules and find walking routes between classes.
 
-The **Campus Map** view adds local HKU walking routes and advisory between-class estimates. See [coverage and use](backend/docs/features/campus-map.md).
+HKUPlan is already running on the HKU server.
 
-## Run
+**Website (HKUVPN required)** · [http://c3322-pg11.cs.hku.hk](http://c3322-pg11.cs.hku.hk)
 
-For a ZIP submission, select `main` on GitHub and use **Code → Download ZIP**. Extract the complete archive, including hidden configuration templates, then open a terminal in the extracted folder containing this README and `package.json`. Git is not required to launch it. Avoid `%` in the extraction path: Docker Compose 5.5.1 rejects it; spaces are supported. Initial dependency/image downloads require internet access. Submit the original downloaded ZIP, not a working folder containing generated `.env` secrets.
+You only need the instructions below if you want to rebuild the deployment.
 
-Install Docker with Compose. From the repository root:
+## Rebuild on the school server
+
+On the existing server, run these commands in `/home/ubuntu/hkuplan`. This directory contains the deployed source. Using the same directory lets Compose reuse the saved schedules and credentials.
 
 ```sh
+cd /home/ubuntu/hkuplan
 docker compose up -d --build
-docker compose ps
 ```
 
-Server: [http://c3322-pg11.cs.hku.hk](http://c3322-pg11.cs.hku.hk), accessible through HKUVPN. Docker generates persistent random secrets, initializes MySQL, imports the course workbook and starts the application. No host Node.js, npm or `.env` setup is required. Only the web port is published; MySQL stays on the Docker network.
-
-For a fresh local installation, use the local override and open [http://localhost](http://localhost):
+For a fresh installation, the server needs Git and Docker with the Compose plugin. Clone the deployed version from GitHub and start it with Compose.
 
 ```sh
-docker compose -f docker-compose.yml -f docker-compose.local.yml up -d --build
+cd /home/ubuntu
+git clone https://github.com/Nicole-Xie-HKU/COMP3322_Group11.git hkuplan
+cd hkuplan
+git checkout --detach 4505246
+docker compose up -d --build
 ```
 
-**Existing installation:** keep the existing `.env`, database passwords, database name/user and Compose project/volume identity. Existing credentials are imported into the secret volumes on first startup. Keep all three named volumes; do not use `docker compose down -v`. See [deployment](backend/docs/deployment.md).
-
-The default web port is 80. Existing `.env` settings override defaults; set `APP_HOST=0.0.0.0`, `PORT=80` and both origin settings to the server URL when upgrading a local configuration for the school server.
-
-## Development and checks
-
-```sh
-npm run setup                 # Install both packages from their lockfiles
-npm run dev:api               # Host backend; requires separate MySQL configuration
-npm run dev                   # Vite at http://localhost:5173 (use a second terminal)
-npm test                      # Required backend and scheduler suites; missing suites fail
-npm run test:mysql            # Creates/removes its own temporary test database
-npm run test:integration      # Real HTTP tests; default http://127.0.0.1:3001
-npm run build
-npm run check
-docker compose stop           # Stop services without deleting saved data
-```
-
-Host development commands require Node.js 24 and separately configured database access. Set `TEST_URL` for a non-default integration-test URL; adjust the Vite proxy if changing the backend port.
-
-Docker intentionally does not publish MySQL to the host. `npm start` is the non-watch backend alternative to `npm run dev:api`.
-
-## Unknown-time policy
-
-Ordinary results exclude sections with any unknown meeting times. To inspect them, select **Include provisional results with unknown times**. Such results explicitly list the affected sections and are not fully conflict-verified. Unknown times are never invented. A dated class that does not meet in the displayed week remains selected; use the week arrows.
-
-[Project map](PROJECT.md) · [Backend](backend/README.md) · [Scheduler contract](scheduler/INTERFACE.md) · [Project status](TASK_PROGRESS.md)
+Compose creates the database passwords and signing secret on first start, imports the bundled course data into MySQL and serves the site on port 80. No `.env` file, API key or TLS certificate is required.
